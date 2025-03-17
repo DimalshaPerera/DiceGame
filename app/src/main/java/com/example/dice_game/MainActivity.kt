@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -59,6 +60,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun GUI() {
+    var showAboutDialog by remember { mutableStateOf(false) }
     Box(modifier = Modifier.fillMaxSize()) {
         // Animated background using images
         AnimatedImageSequenceBackground()
@@ -93,7 +95,7 @@ fun GUI() {
         }
 
         Button(
-            onClick = { },
+            onClick = {showAboutDialog = true },
             contentPadding = PaddingValues(16.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent,
@@ -112,8 +114,8 @@ fun GUI() {
                 .background(
                     brush = Brush.linearGradient(
                         colors = listOf(
-                            Color(0xFF8B4513), // Brown color at 0% (from your image)
-                            Color(0xFF6B3410)  // Darker brown at 100% (from your image)
+                            Color(0xFF8B4513),
+                            Color(0xFF6B3410)
                         ),
                         start = Offset(0f, 0f),
                         end = Offset(0f, Float.POSITIVE_INFINITY)
@@ -127,6 +129,38 @@ fun GUI() {
                 fontFamily = poppins,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White
+            )
+        }
+        if (showAboutDialog) {
+            AlertDialog(
+                onDismissRequest = { showAboutDialog = false },
+                title = {
+                    Text(
+                        text =  "Dimalsha Perera\n Student ID: 20230655",
+                        fontFamily = poppins,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                text = {
+                    Text(
+                        text = "I confirm that I understand what plagiarism is and have read and understood the section on Assessment Offences in the Essential Information for Students. The work that I have submitted is entirely my own. Any work from other authors is duly referenced and acknowledged.",
+                        fontFamily = poppins
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = { showAboutDialog = false },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF8B4513)
+                        )
+                    ) {
+                        Text(
+                            text = "Close",
+                            fontFamily = poppins,
+                            color = Color.White
+                        )
+                    }
+                }
             )
         }
     }

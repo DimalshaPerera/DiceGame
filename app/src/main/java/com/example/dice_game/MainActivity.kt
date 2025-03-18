@@ -7,21 +7,33 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -33,6 +45,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.example.dice_game.ui.theme.DiceGameTheme
 
 // Define font families outside of composable functions
@@ -133,19 +146,71 @@ fun GUI() {
         }
         if (showAboutDialog) {
             AlertDialog(
+                modifier = Modifier.padding(start = 30.dp),
                 onDismissRequest = { showAboutDialog = false },
                 title = {
-                    Text(
-                        text =  "Dimalsha Perera\n Student ID: 20230655",
-                        fontFamily = poppins,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .padding(start = 40.dp)
+                        ) {
+                            Text(
+                                text = "Dimalsha Perera",
+                                fontFamily = poppins,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp
+                            )
+                            Text(
+                                text = "ID: 20230655",
+                                fontFamily = poppins,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = Color.DarkGray
+                            )
+                        }
+
+                        // X close button
+                        IconButton(
+                            onClick = { showAboutDialog = false },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .align(Alignment.TopEnd)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close",
+                                tint = Color.DarkGray,
+                            )
+                        }
+                    }
                 },
                 text = {
-                    Text(
-                        text = "I confirm that I understand what plagiarism is and have read and understood the section on Assessment Offences in the Essential Information for Students. The work that I have submitted is entirely my own. Any work from other authors is duly referenced and acknowledged.",
-                        fontFamily = poppins
-                    )
+                    Box(contentAlignment = Alignment.CenterStart) {
+                        Text(
+                            text = "I confirm that I understand what plagiarism is and have read and understood the section on Assessment Offences in the Essential Information for Students. The work that I have submitted is entirely my own. Any work from other authors is duly referenced and acknowledged.",
+                            fontFamily = poppins,
+                            modifier = Modifier.padding(end = 16.dp)
+                        )
+
+
+                        Image(
+                            painter = painterResource(id = R.drawable.frog),
+                            contentDescription = "Wizard Frog",
+                            modifier = Modifier
+                                .size(70.dp)
+                                .offset(x = (-35).dp, y = -160.dp)
+                                .zIndex(10f)
+                                .clip(CircleShape)
+                                .border(2.dp, Color.White, CircleShape)
+                                .background(Color(0xFFF0E6FA), CircleShape),
+                        )
+                    }
                 },
                 confirmButton = {
                     Button(
@@ -155,7 +220,7 @@ fun GUI() {
                         )
                     ) {
                         Text(
-                            text = "Close",
+                            text = "Confirm",
                             fontFamily = poppins,
                             color = Color.White
                         )
@@ -163,6 +228,89 @@ fun GUI() {
                 }
             )
         }
+//        if (showAboutDialog) {
+//            Box(modifier = Modifier.fillMaxSize()) {
+//                AlertDialog(
+//                    modifier = Modifier.padding(start = 30.dp),
+//                    onDismissRequest = { showAboutDialog = false },
+//                    title = {
+//                        Box(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .height(60.dp)
+//                        ) {
+//
+//                            Column(
+//                                modifier = Modifier
+//                                    .align(Alignment.CenterStart)
+//                                    .padding(start = 40.dp)
+//                            ) {
+//                                Text(
+//                                    text = "Dimalsha Perera",
+//                                    fontFamily = poppins,
+//                                    fontWeight = FontWeight.Bold,
+//                                    fontSize = 20.sp
+//                                )
+//                                Text(
+//                                    text = "ID: 20230655",
+//                                    fontFamily = poppins,
+//                                    fontWeight = FontWeight.Bold,
+//                                    fontSize = 18.sp,
+//                                    color = Color.DarkGray
+//                                )
+//                            }
+//
+//                            // X close button
+//                            IconButton(
+//                                onClick = { showAboutDialog = false },
+//                                modifier = Modifier
+//                                    .size(40.dp)
+//                                    .align(Alignment.TopEnd)
+//                            ) {
+//                                Icon(
+//                                    imageVector = Icons.Default.Close,
+//                                    contentDescription = "Close",
+//                                    tint = Color.DarkGray,
+//                                )
+//                            }
+//                        }
+//                    },
+//                    text = {
+//                        Text(
+//                            text = "I confirm that I understand what plagiarism is and have read and understood the section on Assessment Offences in the Essential Information for Students. The work that I have submitted is entirely my own. Any work from other authors is duly referenced and acknowledged.",
+//                            fontFamily = poppins
+//                        )
+//                    },
+//                    confirmButton = {
+//                        Button(
+//                            onClick = { showAboutDialog = false },
+//                            colors = ButtonDefaults.buttonColors(
+//                                containerColor = Color(0xFF8B4513)
+//                            )
+//                        ) {
+//                            Text(
+//                                text = "Confirm",
+//                                fontFamily = poppins,
+//                                color = Color.White
+//                            )
+//                        }
+//                    }
+//                )
+//
+//
+//                Image(
+//                    painter = painterResource(id = R.drawable.frog),
+//                    contentDescription = "Wizard Frog",
+//                    modifier = Modifier
+//                        .size(100.dp)
+//                        .offset(x = 20.dp, y = 200.dp)
+//                        .clip(CircleShape)
+//                        .border(2.dp, Color.White, CircleShape)
+//                        .background(Color(0xFFF0E6FA), CircleShape) ,
+//                    // Light purple background like in the image
+//                )
+//            }
+//        }
     }
 }
 

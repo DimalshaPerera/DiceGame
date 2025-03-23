@@ -8,20 +8,26 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -37,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dice_game.components.AnimatedTitle
 import com.example.dice_game.components.CustomButton
+import com.example.dice_game.components.GameRules
 import com.example.dice_game.components.GameScreenBackground
 import com.example.dice_game.ui.theme.*
 import com.example.dice_game.ui.theme.LightTransparentWhite
@@ -56,15 +63,49 @@ class GameScreen : ComponentActivity() {
     }
 
 
-
-
 @Composable
-fun Game(){
-   GameScreenBackground()
+fun DiceImage(value: Int) {
+    val diceImageResId = when (value) {
+        1 -> R.drawable.d_1
+        2 -> R.drawable.d_2
+        3 -> R.drawable.d_3
+        4 -> R.drawable.d_4
+        5 -> R.drawable.d_5
+        6 -> R.drawable.d_6
+        else -> R.drawable.d_1
+    }
+
+    Image(
+        painter = painterResource(id = diceImageResId),
+        contentDescription = "Dice showing $value",
+        modifier = Modifier.size(70.dp)
+    )
+}
+@Composable
+fun Game() {
+
+    val (hasThrown, setHasThrown) = remember { mutableStateOf(false) }
+    val (playerDice, setPlayerDice) = remember {
+        mutableStateOf(List(5) { (1..6).random() })
+    }
+
+    val (computerDice, setComputerDice) = remember {
+        mutableStateOf(List(5) { (1..6).random() })
+    }
+
+    GameScreenBackground()
+
+    Text(
+        text = "H:0/C:0",
+        modifier = Modifier
+            .padding(20.dp),
+        color = White,
+        fontSize = 20.sp
+    )
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Animated title at the top
         AnimatedTitle(isGameScreen = true)
-
 
         Box(
             modifier = Modifier
@@ -73,8 +114,7 @@ fun Game(){
                 .fillMaxWidth(0.9f)
                 .height(70.dp)
                 .background(
-
-                    color = LightTransparentWhite ,
+                    color = LightTransparentWhite,
                     shape = RoundedCornerShape(16.dp)
                 )
         ) {
@@ -94,8 +134,6 @@ fun Game(){
             )
         }
 
-
-
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.9f)
@@ -114,44 +152,42 @@ fun Game(){
                 modifier = Modifier
                     .align(Alignment.CenterEnd),
                 color = White,
-
-
-
             )
         }
-        // Dice display
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .padding(top = 250.dp)
-                .align(Alignment.TopCenter),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            // Player dice column (left side)
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.Start
-            ) {
-                DiceImage(value = 6)
-                DiceImage(value = 3)
-                DiceImage(value = 4)
-                DiceImage(value = 2)
-                DiceImage(value = 5)
-            }
 
-            // Computer dice column (right side)
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.End
+        // Only show dice if the player has thrown, otherwise show rules guide
+        if (hasThrown) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .padding(top = 250.dp)
+                    .align(Alignment.TopCenter),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                DiceImage(value = 1)
-                DiceImage(value = 4)
-                DiceImage(value = 3)
-                DiceImage(value = 6)
-                DiceImage(value = 2)
+                // Player dice column
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    playerDice.forEach { value ->
+                        DiceImage(value = value)
+                    }
+                }
+
+                // Computer dice column
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    computerDice.forEach { value ->
+                        DiceImage(value = value)
+                    }
+                }
             }
+        } else {
+            GameRules()
         }
-        // Bottom control section with buttons and image
+
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -174,7 +210,6 @@ fun Game(){
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Image(
                     painter = painterResource(id = R.drawable.froggie),
                     contentDescription = "Cute Dice Mascot",
@@ -184,63 +219,31 @@ fun Game(){
                     contentScale = ContentScale.Fit
                 )
 
-
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     horizontalAlignment = Alignment.End
                 ) {
-                    // Throw button
-//                    Button(
-//                        onClick = {  },
-//                        modifier = Modifier
-//                            .width(150.dp)
-//                            .height(40.dp),
-//                        colors = ButtonDefaults.buttonColors(
-//                            containerColor = Color(0xFF6200EE) // Purple
-//                        )
-//                    ) {
-//                        Text(
-//                            text = "Throw",
-//                            color = Color.White
-//                        )
-//                    }
                     CustomButton(
-                        text="Throw",
+                        text = "Throw",
                         fontSize = 16,
-                        onClick = {},
+                        onClick = {
+                            // Generate new random  values when thrown and sethas thrown to true
+                            setPlayerDice(List(5) { (1..6).random() })
+                            setComputerDice(List(5) { (1..6).random() })
+                            setHasThrown(true)
+                        },
                         isGradient = true,
                         width = 150,
                         height = 48
-
-
                     )
+
                     CustomButton(
-                        text="Score",
+                        text = "Score",
                         fontSize = 16,
                         onClick = {},
                         width = 150,
                         height = 47
-
-
-
-                        )
-
-
-//                    // Score button
-//                    Button(
-//                        onClick = { },
-//                        modifier = Modifier
-//                            .width(150.dp)
-//                            .height(40.dp),
-//                        colors = ButtonDefaults.buttonColors(
-//                            containerColor = Color(0xFF4CAF50) // Green
-//                        )
-//                    ) {
-//                        Text(
-//                            text = "Score",
-//                            color = Color.White
-//                        )
-//                    }
+                    )
 
                     // Reroll button
                     Button(
@@ -276,25 +279,4 @@ fun Game(){
             }
         }
     }
-}
-
-@Composable
-fun DiceImage(value: Int) {
-
-    val diceImageResId = when (value) {
-        1 -> R.drawable.d_1
-        2 -> R.drawable.d_2
-        3 -> R.drawable.d_3
-        4 -> R.drawable.d_4
-        5 -> R.drawable.d_5
-        6 -> R.drawable.d_6
-        else -> R.drawable.d_1
-    }
-
-    Image(
-        painter = painterResource(id = diceImageResId),
-        contentDescription = "Dice showing $value",
-        modifier = Modifier.size(70.dp)
-    )
-
 }

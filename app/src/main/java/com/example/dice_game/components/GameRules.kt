@@ -39,7 +39,7 @@ fun GameRules() {
                 .width(900.dp)
                 .height(1000.dp)
                 .align(Alignment.TopCenter)
-                .offset(x = 40.dp, y = (-200).dp)
+                .offset(x = 40.dp, y = (-280).dp)
                 .padding(top = 220.dp)
         ) {
             Image(
@@ -80,7 +80,7 @@ fun GameRules() {
             painter = painterResource(id = R.drawable.witch),
             contentDescription = "Witch Guide",
             modifier = Modifier
-                .size(400.dp)
+                .size(560.dp)
                 .align(Alignment.BottomStart)
                 .offset(x = (-100).dp)
                 .padding(bottom = 210.dp)
@@ -88,13 +88,13 @@ fun GameRules() {
 
         // Good luck text
         Text(
-            text = "GOOD LUCK! \nClick the throw \nbutton to start",
+            text = "GOOD LUCK! \n\nClick the throw \nbutton to start",
             color = White,
             fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
+            fontSize = 20.sp,
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .offset(x = 180.dp, y = 150.dp)
+                .offset(x = 200.dp, y = 90.dp)
         )
     }
 }

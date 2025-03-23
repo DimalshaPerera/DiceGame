@@ -11,7 +11,7 @@ import com.example.dice_game.R
 
 @Composable
 fun GameScreenBackground(){
-    val backgroundImage= painterResource(id= R.drawable.mountains)
+    val backgroundImage= painterResource(id= R.drawable.mountain)
     Box(
         modifier = Modifier.fillMaxSize()
     )

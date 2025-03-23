@@ -8,7 +8,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -45,6 +44,7 @@ import com.example.dice_game.components.AnimatedTitle
 import com.example.dice_game.components.CustomButton
 import com.example.dice_game.components.GameRules
 import com.example.dice_game.components.GameScreenBackground
+import com.example.dice_game.data.GameState
 import com.example.dice_game.ui.theme.*
 import com.example.dice_game.ui.theme.LightTransparentWhite
 
@@ -54,109 +54,83 @@ class GameScreen : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             DiceGameTheme {
-
-                    Game()
-                }
-
+                Game()
             }
         }
     }
-
-
-@Composable
-fun DiceImage(value: Int) {
-    val diceImageResId = when (value) {
-        1 -> R.drawable.d_1
-        2 -> R.drawable.d_2
-        3 -> R.drawable.d_3
-        4 -> R.drawable.d_4
-        5 -> R.drawable.d_5
-        6 -> R.drawable.d_6
-        else -> R.drawable.d_1
-    }
-
-    Image(
-        painter = painterResource(id = diceImageResId),
-        contentDescription = "Dice showing $value",
-        modifier = Modifier.size(70.dp)
-    )
 }
+
 @Composable
 fun Game() {
-
-    val (hasThrown, setHasThrown) = remember { mutableStateOf(false) }
-    val (playerDice, setPlayerDice) = remember {
-        mutableStateOf(List(5) { (1..6).random() })
-    }
-
-    val (computerDice, setComputerDice) = remember {
-        mutableStateOf(List(5) { (1..6).random() })
-    }
+    val gameState = remember { mutableStateOf(GameState()) }
+    val humanWins = 0
+    val computerWins = 0
+    val remainingRerolls = remember { mutableStateOf(2) }
 
     GameScreenBackground()
 
     Text(
-        text = "H:0/C:0",
-        modifier = Modifier
-            .padding(20.dp),
+        text = "H:${humanWins}/C:${computerWins}",
+        modifier = Modifier.padding(20.dp),
         color = White,
         fontSize = 20.sp
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Animated title at the top
+
         AnimatedTitle(isGameScreen = true)
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 100.dp)
-                .fillMaxWidth(0.9f)
-                .height(70.dp)
-                .background(
-                    color = LightTransparentWhite,
-                    shape = RoundedCornerShape(16.dp)
+        // Only show dice if the player has thrown
+        if (gameState.value.hasThrown) {
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 100.dp)
+                    .fillMaxWidth(0.9f)
+                    .height(70.dp)
+                    .background(
+                        color = LightTransparentWhite,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+            ) {
+                Text(
+                    text = "Human : ${gameState.value.playerScore} ",
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(13.dp),
+                    color = DarkGray
                 )
-        ) {
-            Text(
-                text = "Human : 0 ",
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(13.dp),
-                color = DarkGray
-            )
-            Text(
-                text = "Computer : 0 ",
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(13.dp),
-                color = DarkGray
-            )
-        }
+                Text(
+                    text = "Computer : ${gameState.value.computerScore} ",
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(13.dp),
+                    color = DarkGray
+                )
+            }
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .padding(top = 200.dp)
-                .align(Alignment.TopCenter)
-        ) {
-            Text(
-                text = "YOUR DICE",
+            Box(
                 modifier = Modifier
-                    .align(Alignment.CenterStart),
-                color = White
-            )
+                    .fillMaxWidth(0.9f)
+                    .padding(top = 200.dp)
+                    .align(Alignment.TopCenter)
+            ) {
+                Text(
+                    text = "YOUR DICE",
+                    modifier = Modifier
+                        .align(Alignment.CenterStart),
+                    color = White
+                )
 
-            Text(
-                text = "COMPUTER'S DICE",
-                modifier = Modifier
-                    .align(Alignment.CenterEnd),
-                color = White,
-            )
-        }
+                Text(
+                    text = "COMPUTER'S DICE",
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd),
+                    color = White,
+                )
+            }
 
-        // Only show dice if the player has thrown, otherwise show rules guide
-        if (hasThrown) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -169,7 +143,7 @@ fun Game() {
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    playerDice.forEach { value ->
+                    gameState.value.playerDice.forEach { value ->
                         DiceImage(value = value)
                     }
                 }
@@ -179,11 +153,21 @@ fun Game() {
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalAlignment = Alignment.End
                 ) {
-                    computerDice.forEach { value ->
+                    gameState.value.computerDice.forEach { value ->
                         DiceImage(value = value)
                     }
                 }
             }
+
+            Text(
+                text = if (remainingRerolls.value > 0) "${remainingRerolls.value} rerolls remaining" else "No Rerolls left",
+                color = if (remainingRerolls.value > 0) Color.White else Color.Red,
+
+                fontSize = 14.sp,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 210.dp)
+            )
         } else {
             GameRules()
         }
@@ -227,10 +211,12 @@ fun Game() {
                         text = "Throw",
                         fontSize = 16,
                         onClick = {
-                            // Generate new random  values when thrown and sethas thrown to true
-                            setPlayerDice(List(5) { (1..6).random() })
-                            setComputerDice(List(5) { (1..6).random() })
-                            setHasThrown(true)
+                            // Generate new random values when thrown and set hasThrown to true
+                            gameState.value = gameState.value.copy(
+                                playerDice = List(5) { (1..6).random() },
+                                computerDice = List(5) { (1..6).random() },
+                                hasThrown = true
+                            )
                         },
                         isGradient = true,
                         width = 150,
@@ -245,38 +231,68 @@ fun Game() {
                         height = 47
                     )
 
-                    // Reroll button
-                    Button(
-                        onClick = { },
-                        modifier = Modifier
-                            .width(150.dp)
-                            .height(40.dp)
-                            .background(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(
-                                        Color(0xFF8BC34A),
-                                        Color(0xFF7CB342)
+
+                    if (gameState.value.hasThrown){
+                        Button(
+                            onClick = {
+                                if (remainingRerolls.value > 0) {
+                                    gameState.value = gameState.value.copy(
+                                        playerDice = List(5) { (1..6).random() },
+                                        computerDice = List(5) { (1..6).random() }
+                                    )
+                                    remainingRerolls.value = remainingRerolls.value - 1
+                                }
+                            },
+                            modifier = Modifier
+                                .width(150.dp)
+                                .height(40.dp)
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        colors = listOf(
+                                            Color(0xFF8BC34A),
+                                            Color(0xFF7CB342)
+                                        ),
+                                        start = Offset(0f, 0f),
+                                        end = Offset(0f, Float.POSITIVE_INFINITY)
                                     ),
-                                    start = Offset(0f, 0f),
-                                    end = Offset(0f, Float.POSITIVE_INFINITY)
+                                    shape = RoundedCornerShape(50.dp)
                                 ),
-                                shape = RoundedCornerShape(50.dp)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Transparent
                             ),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent
-                        ),
-                        shape = RoundedCornerShape(50.dp)
-                    ) {
-                        Text(
-                            text = "Reroll",
-                            color = Color.White,
-                            fontFamily = Poppins,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 16.sp
-                        )
+                            shape = RoundedCornerShape(50.dp)
+                        ) {
+                            Text(
+                                text = if (remainingRerolls.value > 0) "Reroll" else "No Rerolls",
+                                color = if (remainingRerolls.value > 0) Color.White else Color.Red,
+                                fontFamily = Poppins,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 16.sp
+                            )
+                        }
                     }
+
                 }
             }
         }
     }
+}
+
+@Composable
+fun DiceImage(value: Int) {
+    val diceImageResId = when (value) {
+        1 -> R.drawable.d_1
+        2 -> R.drawable.d_2
+        3 -> R.drawable.d_3
+        4 -> R.drawable.d_4
+        5 -> R.drawable.d_5
+        6 -> R.drawable.d_6
+        else -> R.drawable.d_1
+    }
+
+    Image(
+        painter = painterResource(id = diceImageResId),
+        contentDescription = "Dice showing $value",
+        modifier = Modifier.size(70.dp)
+    )
 }

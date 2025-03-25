@@ -1075,34 +1075,74 @@ private fun startNewTurn(
 }
 
 private fun generateDice(): List<Int> = List(5) { (1..6).random() }
-
 private fun calculateScore(
     gameState: MutableState<GameState>,
     gameContext: GameContext,
     handler: Handler
 ) {
-    // Calculate scores simply by summing up the dice values
+    // If the computer still has rerolls, let it decide again
+    if (gameContext.computerRerolls.value > 0) {
+        Log.d("DiceGame", "Before scoring, computer reconsidering rerolls...")
+
+        handler.postDelayed({
+            computerTurn(gameState, gameContext.computerRerolls, handler)
+
+            // After rerolls are done (or if no rerolls were used), finalize the score
+            finalizeScore(gameState, gameContext)
+        }, 1000) // Small delay before rechecking
+    } else {
+        finalizeScore(gameState, gameContext)
+    }
+}
+
+private fun finalizeScore(
+    gameState: MutableState<GameState>,
+    gameContext: GameContext
+) {
     val playerScore = gameState.value.playerDice.sum()
     val computerScore = gameState.value.computerDice.sum()
 
-    // Update game state with new scores
+    // Update scores
     gameState.value = gameState.value.copy(
         playerScore = gameState.value.playerScore + playerScore,
         computerScore = gameState.value.computerScore + computerScore
     )
 
-    // Reset computer dice thrown state
+    // Reset game state for next turn
     gameContext.computerDiceThrown.value = false
-
-    // Exit reroll mode if active
     gameContext.inRerollMode.value = false
-
-    // Increment turn counter
     gameContext.currentTurn.value += 1
-
-    // Mark scoring as completed for this turn
     gameContext.scoringCompleted.value = true
 }
+
+//
+//private fun calculateScore(
+//    gameState: MutableState<GameState>,
+//    gameContext: GameContext,
+//    handler: Handler
+//) {
+//    // Calculate scores simply by summing up the dice values
+//    val playerScore = gameState.value.playerDice.sum()
+//    val computerScore = gameState.value.computerDice.sum()
+//
+//    // Update game state with new scores
+//    gameState.value = gameState.value.copy(
+//        playerScore = gameState.value.playerScore + playerScore,
+//        computerScore = gameState.value.computerScore + computerScore
+//    )
+//
+//    // Reset computer dice thrown state
+//    gameContext.computerDiceThrown.value = false
+//
+//    // Exit reroll mode if active
+//    gameContext.inRerollMode.value = false
+//
+//    // Increment turn counter
+//    gameContext.currentTurn.value += 1
+//
+//    // Mark scoring as completed for this turn
+//    gameContext.scoringCompleted.value = true
+//}
 
 
 

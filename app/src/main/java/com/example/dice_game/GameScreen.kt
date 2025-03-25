@@ -934,7 +934,6 @@ fun Game() {
         )
     }
 }
-
 private fun handleThrowAction(
     gameState: MutableState<GameState>,
     gameContext: GameContext,
@@ -950,22 +949,52 @@ private fun handleThrowAction(
         // We're in reroll mode - reroll only unselected dice
         rerollPlayerDice(gameState, gameContext)
 
-        // Auto-calculate score if no rerolls left, but with a longer delay to show the final roll
+        // Only proceed with computer turn if player has used all rerolls
         if (gameContext.playerRerolls.value == 0) {
             handler.postDelayed({
                 calculateScore(gameState, gameContext, handler)
             }, 2000) // Increased delay to 2 seconds for better visibility
         } else {
-            // Computer turn after delay if we're not auto-scoring yet
-            handler.postDelayed({
-                computerTurn(gameState, gameContext.computerRerolls, handler)
-            }, 500)
+            // Do nothing if player still has rerolls left
+            // This prevents automatic computer turn
         }
     } else {
         // Starting a new turn after scoring - now we generate new dice
         startNewTurn(gameState, gameContext, handler)
     }
 }
+//
+//private fun handleThrowAction(
+//    gameState: MutableState<GameState>,
+//    gameContext: GameContext,
+//    handler: Handler
+//) {
+//    if (!gameState.value.hasThrown) {
+//        // First throw - Initialize new game
+//        initializeNewGame(gameState, gameContext)
+//
+//        // Show computer dice after delay
+//        scheduleComputerActions(gameState, gameContext, handler)
+//    } else if (gameContext.inRerollMode.value) {
+//        // We're in reroll mode - reroll only unselected dice
+//        rerollPlayerDice(gameState, gameContext)
+//
+//        // Auto-calculate score if no rerolls left, but with a longer delay to show the final roll
+//        if (gameContext.playerRerolls.value == 0) {
+//            handler.postDelayed({
+//                calculateScore(gameState, gameContext, handler)
+//            }, 2000) // Increased delay to 2 seconds for better visibility
+//        } else {
+//            // Computer turn after delay if we're not auto-scoring yet
+//            handler.postDelayed({
+//                computerTurn(gameState, gameContext.computerRerolls, handler)
+//            }, 500)
+//        }
+//    } else {
+//        // Starting a new turn after scoring - now we generate new dice
+//        startNewTurn(gameState, gameContext, handler)
+//    }
+//}
 
 private fun initializeNewGame(
     gameState: MutableState<GameState>,
@@ -1119,34 +1148,6 @@ private fun finalizeScore(
     gameContext.scoringCompleted.value = true
 }
 
-//
-//private fun calculateScore(
-//    gameState: MutableState<GameState>,
-//    gameContext: GameContext,
-//    handler: Handler
-//) {
-//    // Calculate scores simply by summing up the dice values
-//    val playerScore = gameState.value.playerDice.sum()
-//    val computerScore = gameState.value.computerDice.sum()
-//
-//    // Update game state with new scores
-//    gameState.value = gameState.value.copy(
-//        playerScore = gameState.value.playerScore + playerScore,
-//        computerScore = gameState.value.computerScore + computerScore
-//    )
-//
-//    // Reset computer dice thrown state
-//    gameContext.computerDiceThrown.value = false
-//
-//    // Exit reroll mode if active
-//    gameContext.inRerollMode.value = false
-//
-//    // Increment turn counter
-//    gameContext.currentTurn.value += 1
-//
-//    // Mark scoring as completed for this turn
-//    gameContext.scoringCompleted.value = true
-//}
 
 
 
@@ -1270,6 +1271,7 @@ private fun considerSecondReroll(
     } else {
         Log.d("DiceGame", "Computer decided not to use second reroll")
     }
+
 
     Log.d("DiceGame", "Computer rerolls left after second decision: ${remainingRerolls.value}")
 }

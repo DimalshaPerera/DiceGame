@@ -1080,6 +1080,9 @@ private fun calculateScore(
     gameContext: GameContext,
     handler: Handler
 ) {
+    if (gameContext.computerRerolls.value == 0){
+        Log.d("dicegame","no rerolls left so we are calculating")
+    }
     // If the computer still has rerolls, let it decide again
     if (gameContext.computerRerolls.value > 0) {
         Log.d("DiceGame", "Before scoring, computer reconsidering rerolls...")
@@ -1107,6 +1110,7 @@ private fun finalizeScore(
         playerScore = gameState.value.playerScore + playerScore,
         computerScore = gameState.value.computerScore + computerScore
     )
+
 
     // Reset game state for next turn
     gameContext.computerDiceThrown.value = false
@@ -1235,7 +1239,10 @@ private fun considerSecondReroll(
         // Log second reroll decisions
         diceToKeep.forEachIndexed { index, keep ->
             Log.d("DiceGame", "Second reroll - Die #${index+1}: Value ${currentDice[index]} - ${if (keep) "KEEPING" else "REROLLING"}")
+            remainingRerolls.value--
+            Log.d("DiceGame", "Computer rerolls left after second decision: ${remainingRerolls.value}")
         }
+
 
         // Generate new values for second reroll
         val newDice = currentDice.mapIndexed { index, value ->
@@ -1264,8 +1271,6 @@ private fun considerSecondReroll(
         Log.d("DiceGame", "Computer decided not to use second reroll")
     }
 
-    // Decrement remaining rerolls regardless of decision
-    remainingRerolls.value--
     Log.d("DiceGame", "Computer rerolls left after second decision: ${remainingRerolls.value}")
 }
 

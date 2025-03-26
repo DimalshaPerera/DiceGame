@@ -33,7 +33,7 @@ fun GameRules() {
         modifier = Modifier
             .fillMaxSize()
     ) {
-        // Speech bubble with game rules
+
         Box(
             modifier = Modifier
                 .width(900.dp)
@@ -66,8 +66,8 @@ fun GameRules() {
                     text = "1. Roll your dice\n" +
                             "2. Choose which to keep\n" +
                             "3. Re-roll up to 2 times per turn\n" +
-                            "4. Score higher than computer\n" +
-                            "5. First to 101 points wins!",
+                            "4. First to score more wins!"
+                          ,
                     color = DarkGray,
                     fontSize = 16.sp,
                     lineHeight = 24.sp

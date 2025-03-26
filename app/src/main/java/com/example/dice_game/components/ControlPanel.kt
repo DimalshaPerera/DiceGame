@@ -38,6 +38,7 @@ fun ControlPanel(
     remainingPlayerRerolls: Int,
     inRerollMode: Boolean,
     scoringCompleted: Boolean,
+    isTieBreaker: Boolean = false,
     onThrow: () -> Unit,
     onScore: () -> Unit,
     onReroll: () -> Unit,
@@ -90,22 +91,28 @@ fun ControlPanel(
                 )
 
                 // Score button - only enabled after dice have been thrown, not in reroll mode, and scoring is not completed
-                CustomButton(
-                    text = "Score",
-                    fontSize = 16,
-                    onClick = {
-                        if (hasThrown && !inRerollMode && !scoringCompleted) {
-                            onScore()
-                        }
-                    },
-                    width = 150,
-                    height = 47,
-                    // Change the appearance when disabled
-                    modifier = Modifier.alpha(if (hasThrown && !inRerollMode && !scoringCompleted) 1f else 0.5f)
-                )
+                if(!isTieBreaker) {
+                    CustomButton(
+                        text = "Score",
+                        fontSize = 16,
+                        onClick = {
+                            if (!isTieBreaker && hasThrown && !inRerollMode && !scoringCompleted) {
+                                onScore()
+                            }
+//                        if (hasThrown && !inRerollMode && !scoringCompleted) {
+//                            onScore()
+//                        }
+                        },
+                        width = 150,
+                        height = 47,
+                        // Change the appearance when disabled
+                        modifier = Modifier.alpha(if (hasThrown && !inRerollMode && !scoringCompleted) 1f else 0.5f)
+                    )
+                }
 
                 // Reroll button (only visible when dice have been thrown and not in reroll mode)
-                if (hasThrown && !inRerollMode) {
+//                if (hasThrown && !inRerollMode) {
+                if (hasThrown && !inRerollMode && !isTieBreaker) {
                     Button(
                         onClick = onReroll,
                         modifier = Modifier

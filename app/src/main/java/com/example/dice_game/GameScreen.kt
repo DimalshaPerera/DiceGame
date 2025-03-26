@@ -43,6 +43,7 @@ import com.example.dice_game.components.AnimatedTitle
 import com.example.dice_game.components.ControlPanel
 
 import com.example.dice_game.components.GameContent
+import com.example.dice_game.components.GameResultDialog
 import com.example.dice_game.components.GameRules
 import com.example.dice_game.components.GameScreenBackground
 
@@ -436,7 +437,6 @@ private fun logRerollSummary(
     Log.d("DiceGame", "- Dice rerolled: ${currentDice.filterIndexed { index, _ -> !diceToKeep[index] }}")
     Log.d("DiceGame", "- New dice set: $newDice")
 }
-
 @Composable
 fun Result(gameState: MutableState<GameState>) {
     val showResultDialog = remember { mutableStateOf(false) }
@@ -476,7 +476,6 @@ fun Result(gameState: MutableState<GameState>) {
             frogImage.value = R.drawable.sad_frog
             Log.d("res", "computer wins")
         } else if (gameState.value.playerScore >= 101 && gameState.value.computerScore >= 101) {
-//        if (gameState.value.playerScore==gameState.value.computerScore ){
             showTieFrogDialog.value = true
             resultMessage.value = "     It's a Tie! \n Rolling again"
             resultColor.value = DarkYellow
@@ -520,21 +519,24 @@ fun Result(gameState: MutableState<GameState>) {
         Log.d("TieBreaker", "Tie-Break Scores - Player: $playerTieBreakScore, Computer: $computerTieBreakScore")
 
         if (playerTieBreakScore > computerTieBreakScore) {
-            humanWins++
-            showResultDialog.value = true
-            resultMessage.value = "You Win!"
-            resultColor.value = Green
-            frogImage.value = R.drawable.happy_frog
-            isTieBreaker.value = false
+            handler.postDelayed({
+                humanWins++
+                showResultDialog.value = true
+                resultMessage.value = "You Win!"
+                resultColor.value = Green
+                frogImage.value = R.drawable.happy_frog
+                isTieBreaker.value = false
+            }, 5000)
         } else if (computerTieBreakScore > playerTieBreakScore) {
-            computerWins++
-            showResultDialog.value = true
-            resultMessage.value = "You Lose!"
-            resultColor.value = Color.Red
-            frogImage.value = R.drawable.sad_frog
-            isTieBreaker.value = false
+            handler.postDelayed({
+                computerWins++
+                showResultDialog.value = true
+                resultMessage.value = "You Lose!"
+                resultColor.value = Color.Red
+                frogImage.value = R.drawable.sad_frog
+                isTieBreaker.value = false
+            }, 5000)
         } else {
-
             showTieFrogDialog.value = true
             resultMessage.value = "     Another Tie! \n Rolling again"
             resultColor.value = DarkYellow
@@ -566,80 +568,233 @@ fun Result(gameState: MutableState<GameState>) {
         }
     }
 
-    // Tie Frog Dialog
-    if (showTieFrogDialog.value) {
-        AlertDialog(
-            onDismissRequest = { },
-            title = null,
-            text = {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = frogImage.value),
-                        contentDescription = resultMessage.value,
-                        modifier = Modifier
-                            .size(200.dp)
-                            .padding(bottom = 16.dp)
-                    )
-                    Text(
-                        text = resultMessage.value,
-                        color = resultColor.value,
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                }
-            },
-            confirmButton = {
+    // Use the new GameResultDialog for tie frog dialog
+    GameResultDialog(
+        showDialog = showTieFrogDialog.value,
+        message = resultMessage.value,
+        color = resultColor.value,
+        frogImage = frogImage.value,
+        onDismiss = {
+            showTieFrogDialog.value = false
+        }
+    )
 
-            }
-        )
-    }
 
-    // Result Dialog
-    if (showResultDialog.value) {
-        AlertDialog(
-            onDismissRequest = {
-                val intent = Intent(currentContext, MainActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-                currentContext.startActivity(intent)
-            },
-            title = null,
-            text = {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = frogImage.value),
-                        contentDescription = resultMessage.value,
-                        modifier = Modifier
-                            .size(200.dp)
-                            .padding(bottom = 16.dp)
-                    )
-                    Text(
-                        text = resultMessage.value,
-                        color = resultColor.value,
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                }
-            },
-            confirmButton = {
-
-            }
-        )
-    }
+    GameResultDialog(
+        showDialog = showResultDialog.value,
+        message = resultMessage.value,
+        color = resultColor.value,
+        frogImage = frogImage.value,
+        onDismiss = {
+            val intent = Intent(currentContext, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+            currentContext.startActivity(intent)
+        }
+    )
 }
+//@Composable
+//fun Result(gameState: MutableState<GameState>) {
+//    val showResultDialog = remember { mutableStateOf(false) }
+//    val resultMessage = remember { mutableStateOf("") }
+//    val resultColor = remember { mutableStateOf(Color.Black) }
+//    val frogImage = remember { mutableStateOf(0) }
+//    val currentContext = LocalContext.current
+//    val handler = remember { Handler(Looper.getMainLooper()) }
+//
+//    // New state to track tie-breaker phase
+//    val showTieFrogDialog = remember { mutableStateOf(false) }
+//    val isTieBreaker = remember { mutableStateOf(false) }
+//    val tieBreakPlayerDice = remember { mutableStateOf(listOf<Int>()) }
+//    val tieBreakComputerDice = remember { mutableStateOf(listOf<Int>()) }
+//
+//    // BackHandler to handle back press when result dialog is shown
+//    BackHandler(enabled = showResultDialog.value) {
+//        val intent = Intent(currentContext, MainActivity::class.java)
+//        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+//        currentContext.startActivity(intent)
+//    }
+//
+//    // Check win conditions immediately after scoring is completed
+//    if (gameState.value.scoringCompleted) {
+//        if (gameState.value.playerScore >= 101 && gameState.value.playerScore > gameState.value.computerScore) {
+//            humanWins++
+//            showResultDialog.value = true
+//            resultMessage.value = "You Win!"
+//            resultColor.value = Green
+//            frogImage.value = R.drawable.happy_frog
+//            Log.d("res", "player wins")
+//        } else if (gameState.value.computerScore >= 101 && gameState.value.computerScore > gameState.value.playerScore) {
+//            computerWins++
+//            showResultDialog.value = true
+//            resultMessage.value = "You Lose!"
+//            resultColor.value = Color.Red
+//            frogImage.value = R.drawable.sad_frog
+//            Log.d("res", "computer wins")
+//        } else if (gameState.value.playerScore >= 101 && gameState.value.computerScore >= 101) {
+////        if (gameState.value.playerScore==gameState.value.computerScore ){
+//            showTieFrogDialog.value = true
+//            resultMessage.value = "     It's a Tie! \n Rolling again"
+//            resultColor.value = DarkYellow
+//            frogImage.value = R.drawable.confused
+//
+//            // Schedule transition to tie-breaker after 5 seconds
+//            handler.postDelayed({
+//                showTieFrogDialog.value = false
+//                isTieBreaker.value = true
+//
+//                // Generate initial tie-breaker dice
+//                val playerTieBreakDice = generateDice()
+//                val computerTieBreakDice = generateDice()
+//
+//                tieBreakPlayerDice.value = playerTieBreakDice
+//                tieBreakComputerDice.value = computerTieBreakDice
+//
+//                // Modify game state to allow interaction with tie-breaker dice
+//                gameState.value = gameState.value.copy(
+//                    playerDice = playerTieBreakDice,
+//                    computerDice = computerTieBreakDice,
+//                    computerDiceThrown = true,
+//                    playerRerolls = 0,
+//                    computerRerolls = 0,
+//                    inRerollMode = false,
+//                    scoringCompleted = false,
+//                    selectedDice = List(5) { false },
+//                    isTieBreaker = true,
+//                    playerScore = playerTieBreakDice.sum(),
+//                    computerScore = computerTieBreakDice.sum()
+//                )
+//            }, 5000) // 5 seconds
+//        }
+//    }
+//
+//    // Automatically handle tie-breaker result
+//    if (isTieBreaker.value && gameState.value.isTieBreaker) {
+//        val playerTieBreakScore = gameState.value.playerScore
+//        val computerTieBreakScore = gameState.value.computerScore
+//
+//        Log.d("TieBreaker", "Tie-Break Scores - Player: $playerTieBreakScore, Computer: $computerTieBreakScore")
+//
+//        if (playerTieBreakScore > computerTieBreakScore) {
+//            humanWins++
+//            showResultDialog.value = true
+//            resultMessage.value = "You Win!"
+//            resultColor.value = Green
+//            frogImage.value = R.drawable.happy_frog
+//            isTieBreaker.value = false
+//        } else if (computerTieBreakScore > playerTieBreakScore) {
+//            computerWins++
+//            showResultDialog.value = true
+//            resultMessage.value = "You Lose!"
+//            resultColor.value = Color.Red
+//            frogImage.value = R.drawable.sad_frog
+//            isTieBreaker.value = false
+//        } else {
+//
+//            showTieFrogDialog.value = true
+//            resultMessage.value = "     Another Tie! \n Rolling again"
+//            resultColor.value = DarkYellow
+//            frogImage.value = R.drawable.confused
+//
+//            // Schedule next tie-breaker round
+//            handler.postDelayed({
+//                showTieFrogDialog.value = false
+//
+//                // Generate new dice for next tie-breaker round
+//                val nextPlayerTieBreakDice = generateDice()
+//                val nextComputerTieBreakDice = generateDice()
+//
+//                // Update game state to continue tie-breaker
+//                gameState.value = gameState.value.copy(
+//                    playerDice = nextPlayerTieBreakDice,
+//                    computerDice = nextComputerTieBreakDice,
+//                    computerDiceThrown = true,
+//                    playerRerolls = 0,  // Prevent player from rerolling
+//                    computerRerolls = 0,  // Prevent computer from rerolling
+//                    inRerollMode = false,
+//                    scoringCompleted = false,
+//                    selectedDice = List(5) { false },
+//                    isTieBreaker = true,
+//                    playerScore = nextPlayerTieBreakDice.sum(),
+//                    computerScore = nextComputerTieBreakDice.sum()
+//                )
+//            }, 5000)
+//        }
+//    }
+//
+//    // Tie Frog Dialog
+//    if (showTieFrogDialog.value) {
+//        AlertDialog(
+//            onDismissRequest = { },
+//            title = null,
+//            text = {
+//                Column(
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                    verticalArrangement = Arrangement.Center,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(16.dp)
+//                ) {
+//                    Image(
+//                        painter = painterResource(id = frogImage.value),
+//                        contentDescription = resultMessage.value,
+//                        modifier = Modifier
+//                            .size(200.dp)
+//                            .padding(bottom = 16.dp)
+//                    )
+//                    Text(
+//                        text = resultMessage.value,
+//                        color = resultColor.value,
+//                        fontSize = 32.sp,
+//                        fontWeight = FontWeight.Bold,
+//                        modifier = Modifier.padding(bottom = 16.dp)
+//                    )
+//                }
+//            },
+//            confirmButton = {
+//
+//            }
+//        )
+//    }
+//
+//    // Result Dialog
+//    if (showResultDialog.value) {
+//        AlertDialog(
+//            onDismissRequest = {
+//                val intent = Intent(currentContext, MainActivity::class.java)
+//                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+//                currentContext.startActivity(intent)
+//            },
+//            title = null,
+//            text = {
+//                Column(
+//                    horizontalAlignment = Alignment.CenterHorizontally,
+//                    verticalArrangement = Arrangement.Center,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(16.dp)
+//                ) {
+//                    Image(
+//                        painter = painterResource(id = frogImage.value),
+//                        contentDescription = resultMessage.value,
+//                        modifier = Modifier
+//                            .size(200.dp)
+//                            .padding(bottom = 16.dp)
+//                    )
+//                    Text(
+//                        text = resultMessage.value,
+//                        color = resultColor.value,
+//                        fontSize = 32.sp,
+//                        fontWeight = FontWeight.Bold,
+//                        modifier = Modifier.padding(bottom = 16.dp)
+//                    )
+//                }
+//            },
+//            confirmButton = {
+//
+//            }
+//        )
+//    }
+//}
 
 
 

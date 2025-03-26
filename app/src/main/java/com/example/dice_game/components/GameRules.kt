@@ -86,7 +86,7 @@ fun GameRules() {
                 .padding(bottom = 210.dp)
         )
 
-        // Good luck text
+
         Text(
             text = "GOOD LUCK! \n\nClick the throw \nbutton to start",
             color = White,

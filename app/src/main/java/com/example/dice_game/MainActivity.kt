@@ -281,7 +281,7 @@ fun GUI() {
                         }
                     }
                 },
-                confirmButton = { } // Empty confirm button since we're handling it in the content
+                confirmButton = { }
             )
         }
 

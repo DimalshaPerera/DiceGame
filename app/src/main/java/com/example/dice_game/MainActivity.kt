@@ -67,8 +67,10 @@ class MainActivity : ComponentActivity() {
                 GUI()
             }
         }
+
     }
 }
+
 
 @Composable
 fun GUI() {
@@ -81,31 +83,6 @@ fun GUI() {
         AnimatedTitle()
 
 
-//        Button(
-//            onClick = { },
-//            colors = ButtonDefaults.buttonColors(
-//                containerColor = Color.White,
-//                contentColor = Color.DarkGray
-//            ),
-//            shape = RoundedCornerShape(50),
-//            elevation = ButtonDefaults.buttonElevation(
-//                defaultElevation = 5.dp,
-//                pressedElevation = 100.dp
-//            ),
-//            modifier = Modifier
-//                .align(Alignment.Center)
-//                .offset(y = (200).dp)
-//                .height(60.dp)
-//                .width(230.dp)
-//                .fillMaxWidth(0.6f)
-//        ) {
-//            Text(
-//                text = "New Game",
-//                fontSize = 20.sp,
-//                fontFamily = Poppins,
-//                fontWeight = FontWeight.SemiBold,
-//                color = Color.DarkGray
-//            )
         CustomButton(
             text = "New Game",
             onClick = {
@@ -119,43 +96,8 @@ fun GUI() {
                 .offset(y = 200.dp)
         )
 
-//        Button(
-//            onClick = { showAboutDialog = true },
-//            contentPadding = PaddingValues(16.dp),
-//            colors = ButtonDefaults.buttonColors(
-//                containerColor = Color.Transparent,
-//                contentColor = Color.White
-//            ),
-//            shape = RoundedCornerShape(50),
-//            elevation = ButtonDefaults.buttonElevation(
-//                defaultElevation = 4.dp,
-//                pressedElevation = 2.dp
-//            ),
-//            modifier = Modifier
-//                .align(Alignment.Center)
-//                .offset(y = (280).dp)
-//                .height(60.dp)
-//                .width(230.dp)
-//                .background(
-//                    brush = Brush.linearGradient(
-//                        colors = listOf(
-//                            Color(0xFF8B4513),
-//                            Color(0xFF6B3410)
-//                        ),
-//                        start = Offset(0f, 0f),
-//                        end = Offset(0f, Float.POSITIVE_INFINITY)
-//                    ),
-//                    shape = RoundedCornerShape(50)
-//                )
-//        ) {
-//            Text(
-//                text = "About",
-//                fontSize = 20.sp,
-//                fontFamily = Poppins,
-//                fontWeight = FontWeight.SemiBold,
-//                color = Color.White
-//            )
-//        }
+
+
         CustomButton(
             text = "About",
             onClick = { showAboutDialog = true },
@@ -228,17 +170,7 @@ fun GUI() {
                                     )
                                 }
 
-//                                // Close button
-//                                IconButton(
-//                                    onClick = { showAboutDialog = false },
-//                                    modifier = Modifier.size(28.dp)
-//                                ) {
-//                                    Icon(
-//                                        imageVector = Icons.Default.Close,
-//                                        contentDescription = "Close",
-//                                        tint = Color.White,
-//                                    )
-//                                }
+
                             }
                         }
 

@@ -2,11 +2,15 @@
 
 package com.example.dice_game
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import androidx.compose.ui.platform.LocalContext
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.addCallback
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
@@ -56,16 +60,27 @@ import com.example.dice_game.ui.theme.DarkYellow
 class GameScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
         enableEdgeToEdge()
         setContent {
             DiceGameTheme {
                 Game()
+
             }
         }
     }
+
+
 }
+
+
+
 var computerWins=0
 var humanWins=0
+
+
+
 
 @Composable
 fun Game() {
@@ -429,6 +444,7 @@ fun Result(gameState: MutableState<GameState>) {
     val resultColor = remember { mutableStateOf(Color.Black) }
     val frogImage = remember { mutableStateOf(0) }
     val gameCompleted = remember { mutableStateOf(false) }
+    val currentContext = LocalContext.current
 
     // Check win conditions immediately after scoring is completed
     if (gameState.value.scoringCompleted) {
@@ -473,12 +489,23 @@ fun Result(gameState: MutableState<GameState>) {
             showResultDialog.value = true
         }
     }
+    BackHandler(enabled = showResultDialog.value) {
+
+        val intent = Intent(currentContext, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+        currentContext.startActivity(intent)
+    }
 
     // Result Dialog
     if (showResultDialog.value) {
+
         AlertDialog(
             onDismissRequest = {
+
                 showResultDialog.value = false
+                val intent = Intent(currentContext, MainActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                currentContext.startActivity(intent)
 
             },
             title = null,
@@ -524,6 +551,24 @@ fun Result(gameState: MutableState<GameState>) {
 //                }
             }
         )
+        if (gameCompleted.value) {
+            // Disable all control panel actions
+            ControlPanel(
+                hasThrown = false,
+                remainingPlayerRerolls = 0,
+                inRerollMode = false,
+                scoringCompleted = true,
+                onThrow = {},
+                onScore = {},
+                onReroll = {},
+                modifier = Modifier
+            )
+        }
+
+
+
     }
+
+
 }
 

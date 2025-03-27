@@ -462,6 +462,7 @@ fun Result(gameState: MutableState<GameState>) {
     val isTieBreaker = remember { mutableStateOf(false) }
     val tieBreakPlayerDice = remember { mutableStateOf(listOf<Int>()) }
     val tieBreakComputerDice = remember { mutableStateOf(listOf<Int>()) }
+    val hasUpdatedWin = remember { mutableStateOf(false) }
 
     // BackHandler to handle back press when result dialog is shown
     BackHandler(enabled = showResultDialog.value) {
@@ -471,7 +472,7 @@ fun Result(gameState: MutableState<GameState>) {
     }
 
     // Check win conditions immediately after scoring is completed
-    if (gameState.value.scoringCompleted) {
+    if (gameState.value.scoringCompleted && !hasUpdatedWin.value) {
         if (gameState.value.playerScore >= gameState.value.targetScore && gameState.value.playerScore > gameState.value.computerScore) {
             humanWins++
             showResultDialog.value = true
@@ -479,6 +480,7 @@ fun Result(gameState: MutableState<GameState>) {
             resultColor.value = Green
             frogImage.value = R.drawable.happy_frog
             Log.d("res", "player wins")
+            hasUpdatedWin.value = true
         } else if (gameState.value.computerScore >=gameState.value.targetScore && gameState.value.computerScore > gameState.value.playerScore) {
             computerWins++
             showResultDialog.value = true
@@ -486,6 +488,8 @@ fun Result(gameState: MutableState<GameState>) {
             resultColor.value = Color.Red
             frogImage.value = R.drawable.sad_frog
             Log.d("res", "computer wins")
+
+            hasUpdatedWin.value = true
         } else if (gameState.value.playerScore >= gameState.value.targetScore && gameState.value.computerScore >= gameState.value.targetScore) {
             showTieFrogDialog.value = true
             resultMessage.value = "     It's a Tie! \n Rolling again"
@@ -537,6 +541,7 @@ fun Result(gameState: MutableState<GameState>) {
                 resultColor.value = Green
                 frogImage.value = R.drawable.happy_frog
                 isTieBreaker.value = false
+                hasUpdatedWin.value = true
             }, 5000)
         } else if (computerTieBreakScore > playerTieBreakScore) {
             handler.postDelayed({
@@ -546,6 +551,7 @@ fun Result(gameState: MutableState<GameState>) {
                 resultColor.value = Color.Red
                 frogImage.value = R.drawable.sad_frog
                 isTieBreaker.value = false
+                hasUpdatedWin.value = true
             }, 5000)
         } else {
             showTieFrogDialog.value = true

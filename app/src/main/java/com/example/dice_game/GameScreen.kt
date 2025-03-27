@@ -46,6 +46,7 @@ import com.example.dice_game.components.GameContent
 import com.example.dice_game.components.GameResultDialog
 import com.example.dice_game.components.GameRules
 import com.example.dice_game.components.GameScreenBackground
+import com.example.dice_game.data.FinalResult
 
 import com.example.dice_game.data.GameState
 import com.example.dice_game.ui.theme.BrownPrimary
@@ -84,12 +85,11 @@ var humanWins=0
 @Composable
 fun Game() {
     // Game state
-    val gameState = remember {
-        mutableStateOf(
-            GameState()
-        )
-    }
+    val gameState = remember { mutableStateOf(GameState()) }
     val isInitialSetup = remember { mutableStateOf(true) }
+
+    // Final result tracking
+    val finalResult = remember { mutableStateOf(FinalResult()) }
 
     // Handler for delayed actions
     val handler = remember { Handler(Looper.getMainLooper()) }
@@ -100,7 +100,7 @@ fun Game() {
     // Main game content
     Box(modifier = Modifier.fillMaxSize()) {
         Text(
-            text = "H:${humanWins}/C:${computerWins}",
+            text = "H:${finalResult.value.humanWins}/C:${finalResult.value.computerWins}",
             modifier = Modifier.padding(20.dp),
             color = White,
             fontSize = 20.sp
@@ -145,7 +145,7 @@ fun Game() {
             }
         }
 
-        Result(gameState)
+        Result(gameState, finalResult)
 
         // Bottom control panel - Now always visible
         ControlPanel(
@@ -449,13 +449,17 @@ private fun logRerollSummary(
     Log.d("DiceGame", "- New dice set: $newDice")
 }
 @Composable
-fun Result(gameState: MutableState<GameState>) {
+fun Result(
+    gameState: MutableState<GameState>,
+    finalResult: MutableState<FinalResult>
+) {
     val showResultDialog = remember { mutableStateOf(false) }
     val resultMessage = remember { mutableStateOf("") }
     val resultColor = remember { mutableStateOf(Color.Black) }
     val frogImage = remember { mutableStateOf(0) }
     val currentContext = LocalContext.current
     val handler = remember { Handler(Looper.getMainLooper()) }
+    val winCounted = remember { mutableStateOf(false) }
 
     // New state to track tie-breaker phase
     val showTieFrogDialog = remember { mutableStateOf(false) }
@@ -471,20 +475,22 @@ fun Result(gameState: MutableState<GameState>) {
     }
 
     // Check win conditions immediately after scoring is completed
-    if (gameState.value.scoringCompleted) {
+    if (gameState.value.scoringCompleted  && !winCounted.value) {
         if (gameState.value.playerScore >= gameState.value.targetScore && gameState.value.playerScore > gameState.value.computerScore) {
-            humanWins++
+            finalResult.value = finalResult.value.copy(humanWins = finalResult.value.humanWins + 1)
             showResultDialog.value = true
             resultMessage.value = "You Win!"
             resultColor.value = Green
             frogImage.value = R.drawable.happy_frog
+            winCounted.value = true
             Log.d("res", "player wins")
         } else if (gameState.value.computerScore >=gameState.value.targetScore && gameState.value.computerScore > gameState.value.playerScore) {
-            computerWins++
+            finalResult.value = finalResult.value.copy(computerWins = finalResult.value.computerWins + 1)
             showResultDialog.value = true
             resultMessage.value = "You Lose!"
             resultColor.value = Color.Red
             frogImage.value = R.drawable.sad_frog
+            winCounted.value = true
             Log.d("res", "computer wins")
         } else if (gameState.value.playerScore >= gameState.value.targetScore && gameState.value.computerScore >= gameState.value.targetScore) {
             showTieFrogDialog.value = true
@@ -531,21 +537,23 @@ fun Result(gameState: MutableState<GameState>) {
 
         if (playerTieBreakScore > computerTieBreakScore) {
             handler.postDelayed({
-                humanWins++
+                finalResult.value = finalResult.value.copy(humanWins = finalResult.value.humanWins + 1)
                 showResultDialog.value = true
                 resultMessage.value = "You Win!"
                 resultColor.value = Green
                 frogImage.value = R.drawable.happy_frog
                 isTieBreaker.value = false
+                winCounted.value = true
             }, 5000)
         } else if (computerTieBreakScore > playerTieBreakScore) {
             handler.postDelayed({
-                computerWins++
+                finalResult.value = finalResult.value.copy(computerWins = finalResult.value.computerWins + 1)
                 showResultDialog.value = true
                 resultMessage.value = "You Lose!"
                 resultColor.value = Color.Red
                 frogImage.value = R.drawable.sad_frog
                 isTieBreaker.value = false
+                winCounted.value = true
             }, 5000)
         } else {
             showTieFrogDialog.value = true
@@ -579,7 +587,6 @@ fun Result(gameState: MutableState<GameState>) {
         }
     }
 
-    // Use the new GameResultDialog for tie frog dialog
     GameResultDialog(
         showDialog = showTieFrogDialog.value,
         message = resultMessage.value,

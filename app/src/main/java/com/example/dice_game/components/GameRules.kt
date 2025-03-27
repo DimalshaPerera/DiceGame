@@ -280,7 +280,7 @@ fun GameRules(
 
         // Good luck text in one line under witch
         Text(
-            text = "Click the throw button to start",
+            text = "Apply your target score & Click throw",
             color = White,
             fontFamily = Poppins,
             fontWeight = FontWeight.Bold,
@@ -288,7 +288,7 @@ fun GameRules(
             fontSize = 18.sp,
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .offset(x = 60.dp, y = -200.dp)
+                .offset(x = 30.dp, y = -200.dp)
                 .padding(bottom = 20.dp)
         )
     }

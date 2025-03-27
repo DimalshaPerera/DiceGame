@@ -81,31 +81,26 @@ var humanWins=0
 
 
 
-
 @Composable
 fun Game() {
-
     // Game state
     val gameState = remember {
         mutableStateOf(
             GameState()
         )
     }
+    val isInitialSetup = remember { mutableStateOf(true) }
 
     // Handler for delayed actions
     val handler = remember { Handler(Looper.getMainLooper()) }
-
-
 
     // Background
     GameScreenBackground()
 
     // Main game content
     Box(modifier = Modifier.fillMaxSize()) {
-        // Score display
         Text(
             text = "H:${humanWins}/C:${computerWins}",
-
             modifier = Modifier.padding(20.dp),
             color = White,
             fontSize = 20.sp
@@ -114,29 +109,45 @@ fun Game() {
         AnimatedTitle(isGameScreen = true)
 
         // Game content area
-        if (gameState.value.hasThrown) {
-            GameContent(
-                gameState = gameState.value,
-                playerRerolls = gameState.value.playerRerolls,
-                computerRerolls = gameState.value.computerRerolls,
-                computerDiceThrown = gameState.value.computerDiceThrown,
-                inRerollMode = gameState.value.inRerollMode,
-                onDiceSelected = { index ->
-                    // Only allow dice selection when in reroll mode
-                    if (gameState.value.inRerollMode) {
-                        val updatedSelectedDice = gameState.value.selectedDice.toMutableList()
-                        // selection status of the dice
-                        updatedSelectedDice[index] = !updatedSelectedDice[index]
-                        gameState.value = gameState.value.copy(selectedDice = updatedSelectedDice)
-                    }
+        if (isInitialSetup.value) {
+            GameRules(
+                onWinningScoreSet = { score ->
+                    // Update game state with chosen winning score
+                    gameState.value = gameState.value.copy(targetScore = score)
+                    isInitialSetup.value = false
                 }
             )
         } else {
-            GameRules()
+            if (!gameState.value.hasThrown) {
+                GameRules(
+                    onWinningScoreSet = { score ->
+                        // Allow changing target score before first throw
+                        gameState.value = gameState.value.copy(targetScore = score)
+                    }
+                )
+            } else {
+                GameContent(
+                    gameState = gameState.value,
+                    playerRerolls = gameState.value.playerRerolls,
+                    computerRerolls = gameState.value.computerRerolls,
+                    computerDiceThrown = gameState.value.computerDiceThrown,
+                    inRerollMode = gameState.value.inRerollMode,
+                    onDiceSelected = { index ->
+                        // Only allow dice selection when in reroll mode
+                        if (gameState.value.inRerollMode) {
+                            val updatedSelectedDice = gameState.value.selectedDice.toMutableList()
+                            // Toggle selection status of the dice
+                            updatedSelectedDice[index] = !updatedSelectedDice[index]
+                            gameState.value = gameState.value.copy(selectedDice = updatedSelectedDice)
+                        }
+                    }
+                )
+            }
         }
+
         Result(gameState)
 
-        // Bottom control panel
+        // Bottom control panel - Now always visible
         ControlPanel(
             hasThrown = gameState.value.hasThrown,
             remainingPlayerRerolls = gameState.value.playerRerolls,
@@ -154,7 +165,6 @@ fun Game() {
                     // Enter reroll mode
                     gameState.value = gameState.value.copy(
                         inRerollMode = true,
-
                         selectedDice = List(5) { false }, // Resets selected dice
                         playerRerolls = gameState.value.playerRerolls - 1
                     )
@@ -170,6 +180,95 @@ fun Game() {
         )
     }
 }
+//@Composable
+//fun Game() {
+//
+//    // Game state
+//    val gameState = remember {
+//        mutableStateOf(
+//            GameState()
+//        )
+//    }
+//
+//
+//    // Handler for delayed actions
+//    val handler = remember { Handler(Looper.getMainLooper()) }
+//
+//
+//
+//    // Background
+//    GameScreenBackground()
+//
+//    // Main game content
+//    Box(modifier = Modifier.fillMaxSize()) {
+//        // Score display
+//        Text(
+//            text = "H:${humanWins}/C:${computerWins}",
+//
+//            modifier = Modifier.padding(20.dp),
+//            color = White,
+//            fontSize = 20.sp
+//        )
+//
+//        AnimatedTitle(isGameScreen = true)
+//
+//        // Game content area
+//        if (gameState.value.hasThrown) {
+//            GameContent(
+//                gameState = gameState.value,
+//                playerRerolls = gameState.value.playerRerolls,
+//                computerRerolls = gameState.value.computerRerolls,
+//                computerDiceThrown = gameState.value.computerDiceThrown,
+//                inRerollMode = gameState.value.inRerollMode,
+//                onDiceSelected = { index ->
+//                    // Only allow dice selection when in reroll mode
+//                    if (gameState.value.inRerollMode) {
+//                        val updatedSelectedDice = gameState.value.selectedDice.toMutableList()
+//                        // selection status of the dice
+//                        updatedSelectedDice[index] = !updatedSelectedDice[index]
+//                        gameState.value = gameState.value.copy(selectedDice = updatedSelectedDice)
+//                    }
+//                }
+//            )
+//        } else {
+//            GameRules()
+//        }
+//        Result(gameState)
+//
+//        // Bottom control panel
+//        ControlPanel(
+//            hasThrown = gameState.value.hasThrown,
+//            remainingPlayerRerolls = gameState.value.playerRerolls,
+//            inRerollMode = gameState.value.inRerollMode,
+//            scoringCompleted = gameState.value.scoringCompleted,
+//            isTieBreaker = gameState.value.isTieBreaker,
+//            onThrow = {
+//                handleThrowAction(gameState, handler)
+//            },
+//            onScore = {
+//                calculateScore(gameState, handler)
+//            },
+//            onReroll = {
+//                if (gameState.value.playerRerolls > 0 && !gameState.value.inRerollMode) {
+//                    // Enter reroll mode
+//                    gameState.value = gameState.value.copy(
+//                        inRerollMode = true,
+//
+//                        selectedDice = List(5) { false }, // Resets selected dice
+//                        playerRerolls = gameState.value.playerRerolls - 1
+//                    )
+//
+//                    if (gameState.value.playerRerolls == 0) {
+//                        handler.postDelayed({
+//                            calculateScore(gameState, handler)
+//                        }, 1500)
+//                    }
+//                }
+//            },
+//            modifier = Modifier.align(Alignment.BottomCenter)
+//        )
+//    }
+//}
 
 private fun handleThrowAction(
     gameState: MutableState<GameState>,
@@ -461,21 +560,21 @@ fun Result(gameState: MutableState<GameState>) {
 
     // Check win conditions immediately after scoring is completed
     if (gameState.value.scoringCompleted) {
-        if (gameState.value.playerScore >= 101 && gameState.value.playerScore > gameState.value.computerScore) {
+        if (gameState.value.playerScore >= gameState.value.targetScore && gameState.value.playerScore > gameState.value.computerScore) {
             humanWins++
             showResultDialog.value = true
             resultMessage.value = "You Win!"
             resultColor.value = Green
             frogImage.value = R.drawable.happy_frog
             Log.d("res", "player wins")
-        } else if (gameState.value.computerScore >= 101 && gameState.value.computerScore > gameState.value.playerScore) {
+        } else if (gameState.value.computerScore >=gameState.value.targetScore && gameState.value.computerScore > gameState.value.playerScore) {
             computerWins++
             showResultDialog.value = true
             resultMessage.value = "You Lose!"
             resultColor.value = Color.Red
             frogImage.value = R.drawable.sad_frog
             Log.d("res", "computer wins")
-        } else if (gameState.value.playerScore >= 101 && gameState.value.computerScore >= 101) {
+        } else if (gameState.value.playerScore >= gameState.value.targetScore && gameState.value.computerScore >= gameState.value.targetScore) {
             showTieFrogDialog.value = true
             resultMessage.value = "     It's a Tie! \n Rolling again"
             resultColor.value = DarkYellow

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 
 
 
+
 @Composable
 fun GameResultDialog(
     showDialog: Boolean,
@@ -34,28 +35,29 @@ fun GameResultDialog(
             title = null,
             text = {
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                    horizontalAlignment = Alignment.CenterHorizontally, // Centers horizontally
                     verticalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
+                    // Image is centered horizontally within the Column
                     Image(
                         painter = painterResource(id = frogImage),
                         contentDescription = message,
                         modifier = Modifier
-                            .size(200.dp) // Size of the image
-                            .align(Alignment.CenterHorizontally)
-                            .padding(bottom = 16.dp)
+                            .size(200.dp) // Set the size of the image
+                            .padding(bottom = 16.dp) // Space between the image and the text
                     )
+
+                    // Text is also centered horizontally within the Column
                     Text(
                         text = message,
                         color = color,
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(bottom = 16.dp)
+                            .padding(bottom = 16.dp) // Space after the text
                     )
                 }
             },
@@ -63,4 +65,3 @@ fun GameResultDialog(
         )
     }
 }
-

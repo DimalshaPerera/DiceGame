@@ -93,6 +93,7 @@ fun Game() {
 
     // Handler for delayed actions
     val handler = remember { Handler(Looper.getMainLooper()) }
+    val isTargetScoreApplied = remember { mutableStateOf(false) }
 
     // Background
     GameScreenBackground()
@@ -115,35 +116,45 @@ fun Game() {
                     // Update game state with chosen winning score
                     gameState.value = gameState.value.copy(targetScore = score)
                     isInitialSetup.value = false
+                    isTargetScoreApplied.value = true
+                },
+                onTargetScoreApplied = { applied ->
+                    isTargetScoreApplied.value = applied
                 }
             )
-        } else {
-            if (!gameState.value.hasThrown) {
-                GameRules(
-                    onWinningScoreSet = { score ->
-                        // Allow changing target score before first throw
-                        gameState.value = gameState.value.copy(targetScore = score)
-                    }
-                )
-            } else {
-                GameContent(
-                    gameState = gameState.value,
-                    playerRerolls = gameState.value.playerRerolls,
-                    computerRerolls = gameState.value.computerRerolls,
-                    computerDiceThrown = gameState.value.computerDiceThrown,
-                    inRerollMode = gameState.value.inRerollMode,
-                    onDiceSelected = { index ->
-                        // Only allow dice selection when in reroll mode
-                        if (gameState.value.inRerollMode) {
-                            val updatedSelectedDice = gameState.value.selectedDice.toMutableList()
-                            // Toggle selection status of the dice
-                            updatedSelectedDice[index] = !updatedSelectedDice[index]
-                            gameState.value = gameState.value.copy(selectedDice = updatedSelectedDice)
-                        }
-                    }
-                )
-            }
         }
+            else {
+                if (!gameState.value.hasThrown) {
+                    GameRules(
+                        isTargetScoreApplied = isTargetScoreApplied.value,
+                        onWinningScoreSet = { score ->
+                            // Allow changing target score before first throw
+                            gameState.value = gameState.value.copy(targetScore = score)
+                            isTargetScoreApplied.value = true
+                        },
+                        onTargetScoreApplied = { applied ->
+                            isTargetScoreApplied.value = applied
+                        }
+                    )
+                } else {
+                    GameContent(
+                        gameState = gameState.value,
+                        playerRerolls = gameState.value.playerRerolls,
+                        computerRerolls = gameState.value.computerRerolls,
+                        computerDiceThrown = gameState.value.computerDiceThrown,
+                        inRerollMode = gameState.value.inRerollMode,
+                        onDiceSelected = { index ->
+                            // Only allow dice selection when in reroll mode
+                            if (gameState.value.inRerollMode) {
+                                val updatedSelectedDice = gameState.value.selectedDice.toMutableList()
+                                // Toggle selection status of the dice
+                                updatedSelectedDice[index] = !updatedSelectedDice[index]
+                                gameState.value = gameState.value.copy(selectedDice = updatedSelectedDice)
+                            }
+                        }
+                    )
+                }
+            }
 
         Result(gameState)
 
@@ -155,7 +166,10 @@ fun Game() {
             scoringCompleted = gameState.value.scoringCompleted,
             isTieBreaker = gameState.value.isTieBreaker,
             onThrow = {
-                handleThrowAction(gameState, handler)
+                // can only throw when target is applied
+                if (isTargetScoreApplied.value) {
+                    handleThrowAction(gameState, handler)
+                }
             },
             onScore = {
                 calculateScore(gameState, handler)

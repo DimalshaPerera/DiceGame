@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dice_game.R
+import com.example.dice_game.data.GameState
 import com.example.dice_game.ui.theme.*
 
 
@@ -32,8 +33,10 @@ fun GameRules(
     onWinningScoreSet: (Int) -> Unit = {},
     isTargetScoreApplied: Boolean = false,
     onTargetScoreApplied: (Boolean) -> Unit = {},
+    onGameModeChanged: (Boolean) -> Unit = {}
 
 ) {
+
     // State for target score, validation, and applied status
     val targetScore = remember { mutableStateOf("101") }
     val isValidScore = remember { mutableStateOf(true) }
@@ -55,7 +58,13 @@ fun GameRules(
 
                 CustomButton(
                     text = if (!isHardMode.value) "EASY" else "HARD",
-                    onClick = { isHardMode.value = !isHardMode.value },
+                    onClick = {
+                        // Toggle hard mode directly
+                        isHardMode.value = !isHardMode.value
+
+                        // Notify parent component about mode change
+                        onGameModeChanged(isHardMode.value)
+                    },
                     width = 150,
                     height = 50,
                     isGradient = isHardMode.value,

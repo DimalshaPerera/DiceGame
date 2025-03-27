@@ -86,10 +86,13 @@ fun Game() {
     // Game state
     val gameState = remember {
         mutableStateOf(
-            GameState()
+            GameState(isHardMode = false)
         )
     }
+
     val isInitialSetup = remember { mutableStateOf(true) }
+    Log.d("GameMode", "Current Game Mode: ${if (gameState.value.isHardMode) "HARD" else "EASY"}")
+
 
     // Handler for delayed actions
     val handler = remember { Handler(Looper.getMainLooper()) }
@@ -113,48 +116,52 @@ fun Game() {
         if (isInitialSetup.value) {
             GameRules(
                 onWinningScoreSet = { score ->
-                    // Update game state with chosen winning score
                     gameState.value = gameState.value.copy(targetScore = score)
                     isInitialSetup.value = false
                     isTargetScoreApplied.value = true
                 },
                 onTargetScoreApplied = { applied ->
                     isTargetScoreApplied.value = applied
+                },
+                onGameModeChanged = { hardMode ->
+                    // Update game mode in the game state
+                    gameState.value = gameState.value.copy(isHardMode = hardMode)
                 }
             )
-        }
-            else {
-                if (!gameState.value.hasThrown) {
-                    GameRules(
-                        isTargetScoreApplied = isTargetScoreApplied.value,
-                        onWinningScoreSet = { score ->
-                            // Allow changing target score before first throw
-                            gameState.value = gameState.value.copy(targetScore = score)
-                            isTargetScoreApplied.value = true
-                        },
-                        onTargetScoreApplied = { applied ->
-                            isTargetScoreApplied.value = applied
+        } else {
+            // Existing game content logic remains the same
+            if (!gameState.value.hasThrown) {
+                GameRules(
+                    isTargetScoreApplied = isTargetScoreApplied.value,
+                    onWinningScoreSet = { score ->
+                        gameState.value = gameState.value.copy(targetScore = score)
+                        isTargetScoreApplied.value = true
+                    },
+                    onTargetScoreApplied = { applied ->
+                        isTargetScoreApplied.value = applied
+                    },
+                    onGameModeChanged = { hardMode ->
+                        // Update game mode in the game state
+                        gameState.value = gameState.value.copy(isHardMode = hardMode)
+                    }
+                )
+            } else {
+                GameContent(
+                    gameState = gameState.value,
+                    playerRerolls = gameState.value.playerRerolls,
+                    computerRerolls = gameState.value.computerRerolls,
+                    computerDiceThrown = gameState.value.computerDiceThrown,
+                    inRerollMode = gameState.value.inRerollMode,
+                    onDiceSelected = { index ->
+                        if (gameState.value.inRerollMode) {
+                            val updatedSelectedDice = gameState.value.selectedDice.toMutableList()
+                            updatedSelectedDice[index] = !updatedSelectedDice[index]
+                            gameState.value = gameState.value.copy(selectedDice = updatedSelectedDice)
                         }
-                    )
-                } else {
-                    GameContent(
-                        gameState = gameState.value,
-                        playerRerolls = gameState.value.playerRerolls,
-                        computerRerolls = gameState.value.computerRerolls,
-                        computerDiceThrown = gameState.value.computerDiceThrown,
-                        inRerollMode = gameState.value.inRerollMode,
-                        onDiceSelected = { index ->
-                            // Only allow dice selection when in reroll mode
-                            if (gameState.value.inRerollMode) {
-                                val updatedSelectedDice = gameState.value.selectedDice.toMutableList()
-                                // Toggle selection status of the dice
-                                updatedSelectedDice[index] = !updatedSelectedDice[index]
-                                gameState.value = gameState.value.copy(selectedDice = updatedSelectedDice)
-                            }
-                        }
-                    )
-                }
+                    }
+                )
             }
+        }
 
         Result(gameState)
 
@@ -335,7 +342,6 @@ private fun finalizeScore(
         inRerollMode = false
     )
 }
-
 private fun computerTurn(
     gameState: MutableState<GameState>,
     handler: Handler
@@ -343,20 +349,55 @@ private fun computerTurn(
     Log.d("DiceGame", "Computer turn started. Remaining rerolls: ${gameState.value.computerRerolls}")
     Log.d("DiceGame", "Current computer dice: ${gameState.value.computerDice}")
 
+    // Determine if hard mode is active
+    val isHardMode = gameState.value.isHardMode // Assuming we'll add this to GameState
+
     // Only allow computer to reroll if it has remaining rerolls
     if (gameState.value.computerRerolls > 0) {
-        // Random decision whether to reroll (50% chance)
-        val willReroll = (0..1).random() == 1
+        // Reroll strategy depends on game mode
+        val willReroll = if (isHardMode) {
+            // In hard mode, always try to reroll strategically
+            true
+        } else {
+            // In easy mode, random chance to reroll
+            (0..1).random() == 1
+        }
+
         Log.d("DiceGame", "Computer decided to reroll: $willReroll")
 
         if (willReroll) {
-            performComputerReroll(gameState)
+            if (isHardMode) {
+                // Use hard mode specific reroll strategy
+                val newDice = computeHardModeTurn(gameState, handler)
 
-            // Check if computer wants to do a second reroll after a delay
-            if (gameState.value.computerRerolls > 0) {
-                handler.postDelayed({
-                    considerSecondReroll(gameState)
-                }, 1000) // 1 second delay before second reroll decision
+                // Update computer dice and rerolls
+                gameState.value = gameState.value.copy(
+                    computerDice = newDice,
+                    computerRerolls = gameState.value.computerRerolls - 1
+                )
+
+                // Consider second reroll in hard mode
+                if (gameState.value.computerRerolls > 0) {
+                    handler.postDelayed({
+                        if (isHardMode) {
+                            val secondRerollDice = computeHardModeSecondReroll(gameState, newDice)
+                            gameState.value = gameState.value.copy(
+                                computerDice = secondRerollDice,
+                                computerRerolls = gameState.value.computerRerolls - 1
+                            )
+                        }
+                    }, 1000)
+                }
+            } else {
+                // Easy mode - existing random reroll logic
+                performComputerReroll(gameState)
+
+                // Check if computer wants to do a second reroll after a delay
+                if (gameState.value.computerRerolls > 0) {
+                    handler.postDelayed({
+                        considerSecondReroll(gameState)
+                    }, 1000)
+                }
             }
         } else {
             // Computer decided not to reroll
@@ -366,6 +407,37 @@ private fun computerTurn(
         Log.d("DiceGame", "Computer has no rerolls available, keeping current dice: ${gameState.value.computerDice}")
     }
 }
+
+//private fun computerTurn(
+//    gameState: MutableState<GameState>,
+//    handler: Handler
+//) {
+//    Log.d("DiceGame", "Computer turn started. Remaining rerolls: ${gameState.value.computerRerolls}")
+//    Log.d("DiceGame", "Current computer dice: ${gameState.value.computerDice}")
+//
+//    // Only allow computer to reroll if it has remaining rerolls
+//    if (gameState.value.computerRerolls > 0) {
+//        // Random decision whether to reroll (50% chance)
+//        val willReroll = (0..1).random() == 1
+//        Log.d("DiceGame", "Computer decided to reroll: $willReroll")
+//
+//        if (willReroll) {
+//            performComputerReroll(gameState)
+//
+//            // Check if computer wants to do a second reroll after a delay
+//            if (gameState.value.computerRerolls > 0) {
+//                handler.postDelayed({
+//                    considerSecondReroll(gameState)
+//                }, 1000) // 1 second delay before second reroll decision
+//            }
+//        } else {
+//            // Computer decided not to reroll
+//            Log.d("DiceGame", "Computer decided to keep all dice: ${gameState.value.computerDice}")
+//        }
+//    } else {
+//        Log.d("DiceGame", "Computer has no rerolls available, keeping current dice: ${gameState.value.computerDice}")
+//    }
+//}
 
 private fun performComputerReroll(
     gameState: MutableState<GameState>

@@ -29,5 +29,6 @@ data class GameState(
     val inRerollMode: Boolean = false,
     val computerDiceThrown: Boolean = false,
     val scoringCompleted: Boolean = false,
-    val isTieBreaker: Boolean = false
+    val isTieBreaker: Boolean = false,
+    val targetScore: Int = 101
 )

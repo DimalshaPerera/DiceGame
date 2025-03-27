@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 
+
 @Composable
 fun GameResultDialog(
     showDialog: Boolean,
@@ -43,7 +44,8 @@ fun GameResultDialog(
                         painter = painterResource(id = frogImage),
                         contentDescription = message,
                         modifier = Modifier
-                            .size(200.dp)
+                            .size(200.dp) // Size of the image
+                            .align(Alignment.CenterHorizontally)
                             .padding(bottom = 16.dp)
                     )
                     Text(
@@ -51,7 +53,9 @@ fun GameResultDialog(
                         color = color,
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(bottom = 16.dp)
                     )
                 }
             },
@@ -59,3 +63,4 @@ fun GameResultDialog(
         )
     }
 }
+

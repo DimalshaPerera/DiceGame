@@ -90,7 +90,7 @@ fun ControlPanel(
                     height = 48
                 )
 
-                // Score button - only enabled after dice have been thrown, not in reroll mode, and scoring is not completed
+
                 if(!isTieBreaker) {
                     CustomButton(
                         text = "Score",

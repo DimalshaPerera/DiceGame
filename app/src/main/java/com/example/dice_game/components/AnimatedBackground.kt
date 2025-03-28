@@ -19,8 +19,10 @@ import com.example.dice_game.R
 
 @Composable
 fun AnimatedImageSequenceBackground() {
-    // Define images in a more organized way
+    // Define the list of image resource IDs (a_out0001, a_out0002, ..., a_out0015)
     val imageResources = (1..15).map {
+        // Dynamically retrieve each image resource ID from R.drawable using reflection
+
         R.drawable::class.java.getField("a_out${it.toString().padStart(4, '0')}").getInt(null)
     }
 

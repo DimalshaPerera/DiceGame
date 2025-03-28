@@ -24,7 +24,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dice_game.R
-import com.example.dice_game.data.GameState
+
 import com.example.dice_game.ui.theme.*
 
 
@@ -62,7 +62,7 @@ fun GameRules(
                         // Toggle hard mode directly
                         isHardMode.value = !isHardMode.value
 
-                        // Notify parent component about mode change
+                        // mode change
                         onGameModeChanged(isHardMode.value)
                     },
                     width = 150,
@@ -93,7 +93,7 @@ fun GameRules(
                 contentScale = ContentScale.Fit
             )
 
-            // Rules column inside the bubble
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -101,7 +101,7 @@ fun GameRules(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start
             ) {
-                // Game rules title
+
                 Text(
                     text = "Game Rules",
                     color = BrownDark,
@@ -109,7 +109,6 @@ fun GameRules(
                     fontSize = 28.sp
                 )
 
-                // Game rules list
                 Text(
                     text = "1. Roll your dice\n" +
                             "2. Choose which to keep\n" +
@@ -122,7 +121,7 @@ fun GameRules(
             }
         }
 
-        // Witch character image
+
         Image(
             painter = painterResource(id = R.drawable.witch),
             contentDescription = "Witch Guide",
@@ -143,7 +142,7 @@ fun GameRules(
                 .offset(x = 200.dp, y = 30.dp)
         )
 
-        // Target score input container at previous "Good Luck" text position
+
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
@@ -226,7 +225,7 @@ fun GameRules(
             }
         }
 
-        // Good luck text in one line under witch
+
         Text(
             text = "Apply your target score & Click throw",
             color = White,

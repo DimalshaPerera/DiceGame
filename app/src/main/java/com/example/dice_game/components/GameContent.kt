@@ -27,11 +27,15 @@ import com.example.dice_game.ui.theme.White
 
 @Composable
 fun GameContent(
-    gameState: GameState,
+    playerDice: List<Int>,
+    computerDice: List<Int>,
     playerRerolls: Int,
     computerRerolls: Int,
     computerDiceThrown: Boolean,
     inRerollMode: Boolean,
+    playerScore: Int,
+    computerScore: Int,
+    selectedDice: List<Boolean>,
     onDiceSelected: (Int) -> Unit
 ) {
     // Score display
@@ -47,14 +51,14 @@ fun GameContent(
             )
     ) {
         Text(
-            text = "Human : ${gameState.playerScore} ",
+            text = "Human : $playerScore ",
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .padding(13.dp),
             color = DarkGray
         )
         Text(
-            text = "Computer : ${gameState.computerScore} ",
+            text = "Computer : $computerScore ",
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .padding(13.dp),
@@ -97,10 +101,10 @@ fun GameContent(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            gameState.playerDice.forEachIndexed { index, value ->
+            playerDice.forEachIndexed { index, value ->
                 SelectableDiceImage(
                     value = value,
-                    isSelected = gameState.selectedDice[index],
+                    isSelected = selectedDice[index],
                     onClick = { onDiceSelected(index) },
                     selectable = inRerollMode  // Only allow selection when in reroll mode
                 )
@@ -113,7 +117,7 @@ fun GameContent(
             horizontalAlignment = Alignment.End
         ) {
             if (computerDiceThrown) {
-                gameState.computerDice.forEach { value ->
+                computerDice.forEach { value ->
                     DiceImage(value = value)
                 }
             } else {
@@ -131,14 +135,14 @@ fun GameContent(
         }
     }
 
-    // Reroll information and help text
+    // Reroll information
     Column(
         modifier = Modifier
             .padding(top = 670.dp)
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Show appropriate instruction text based on game state
+
         when {
             inRerollMode -> {
                 Text(

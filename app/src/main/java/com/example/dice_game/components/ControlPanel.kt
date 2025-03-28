@@ -39,6 +39,7 @@ fun ControlPanel(
     inRerollMode: Boolean,
     scoringCompleted: Boolean,
     isTieBreaker: Boolean = false,
+
     onThrow: () -> Unit,
     onScore: () -> Unit,
     onReroll: () -> Unit,

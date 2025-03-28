@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,10 +39,11 @@ fun GameRules(
 ) {
 
     // State for target score, validation, and applied status
-    val targetScore = remember { mutableStateOf("101") }
-    val isValidScore = remember { mutableStateOf(true) }
-    val isScoreApplied = remember { mutableStateOf(isTargetScoreApplied) }
-    val isHardMode = remember { mutableStateOf(false) }
+    val targetScore = rememberSaveable { mutableStateOf("101") }
+    val isValidScore = rememberSaveable { mutableStateOf(true) }
+    val isScoreApplied = rememberSaveable { mutableStateOf(isTargetScoreApplied) }
+    val isHardMode = rememberSaveable { mutableStateOf(false) }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -62,7 +64,7 @@ fun GameRules(
                         // Toggle hard mode directly
                         isHardMode.value = !isHardMode.value
 
-                        // mode change
+
                         onGameModeChanged(isHardMode.value)
                     },
                     width = 150,
@@ -210,6 +212,7 @@ fun GameRules(
                                 onWinningScoreSet(score)
                                 isScoreApplied.value = true
                                 onTargetScoreApplied(true)
+                                onGameModeChanged(isHardMode.value)
                             }
                     )
                 }

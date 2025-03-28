@@ -118,13 +118,15 @@ fun GUI() {
                             ) {
                                 // Profile image
                                 Image(
-                                    painter = painterResource(id = R.drawable.happy_frog),
+                                    painter = painterResource(id = R.drawable.witch),
                                     contentDescription = "Wizard Frog",
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                                     modifier = Modifier
                                         .size(40.dp)
                                         .clip(CircleShape)
                                         .border(2.dp, Color.White, CircleShape)
                                         .background(LightPurple, CircleShape),
+
                                 )
 
                                 // Text content

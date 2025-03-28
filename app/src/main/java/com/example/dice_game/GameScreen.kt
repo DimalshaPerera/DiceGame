@@ -697,67 +697,82 @@ fun Result(gameState: MutableState<GameState>) {
 }
 
 
+
 /**
- * Hard Mode Strategy for Computer Player
+ * Deterministic Hard Mode Strategy for Computer Player
  *
- * Strategy to catch up when behind in the game score
+ * Strategy Rationale:
+ * 1. Score Awareness: Consider both computer's and human's current scores
+ * 2. Adaptive Decision Making: Strategic reroll decisions based on:
+ *    - Current score difference
+ *    - Distance from target score
+ *    - Current dice values
+ *
+ * Strategy Objectives:
+ * - Maximize chance of winning through systematic decision-making
+ * - Minimize randomness
+ * - Make intelligent reroll choices
  */
 fun computeHardModeTurn(
     gameState: MutableState<GameState>,
     handler: Handler
 ): List<Int> {
     val currentDice = gameState.value.computerDice
-    val scoreGap = gameState.value.targetScore - gameState.value.computerScore
+    val currentScore = gameState.value.computerScore
+    val playerScore = gameState.value.playerScore
+    val targetScore = gameState.value.targetScore
     val remainingRerolls = gameState.value.computerRerolls
 
-    // Points to determine strategy levels
-    val NEED_CATCH_UP = gameState.value.targetScore * 0.3 // 30% of target score
-    val URGENT_CATCH_UP = gameState.value.targetScore * 0.15 // 15% of target score
+    // Calculate score gaps
+    val scoreGap = targetScore - currentScore
+    val playerScoreGap = targetScore - playerScore
 
-    // Current dice total
-    val currentDiceTotal = currentDice.sum()
-
-    // Log decision factors
+    // Detailed logging for strategy decision
+    Log.d("HardMode", "Current Computer Score: $currentScore")
+    Log.d("HardMode", "Player Score: $playerScore")
+    Log.d("HardMode", "Target Score: $targetScore")
     Log.d("HardMode", "Score Gap: $scoreGap")
-    Log.d("HardMode", "Current Dice Total: $currentDiceTotal")
+    Log.d("HardMode", "Player Score Gap: $playerScoreGap")
+    Log.d("HardMode", "Current Dice: $currentDice")
     Log.d("HardMode", "Remaining Rerolls: $remainingRerolls")
 
-    // Determine reroll strategy based on score gap
+    // Decide on the reroll strategy based on the score gap
     val rerollStrategy = when {
-        // Most urgent situation - reroll most dice
-        scoreGap > URGENT_CATCH_UP && remainingRerolls > 0 -> {
-            Log.d("HardMode", "CRITICAL MODE: Reroll most dice")
-            List(5) { it < 4 }
-        }
-
-        // Significant gap - selective risky reroll
-        scoreGap > NEED_CATCH_UP && remainingRerolls > 0 -> {
-            Log.d("HardMode", "HIGH RISK MODE: Selective risky reroll")
-            currentDice.mapIndexed { index, value ->
-                value < 4 || (index % 2 == 0 && value < 5)
+        // Critical catch-up needed - reroll all dice below 4 (aggressive)
+        scoreGap > targetScore * 0.5 -> {
+            currentDice.map { value ->
+                // Reroll all dice below 4, prioritize lowest values
+                value < 4
             }
         }
-
-        // Moderate gap - conservative selective reroll
-        scoreGap > (NEED_CATCH_UP / 2) && remainingRerolls > 0 -> {
-            Log.d("HardMode", "MODERATE MODE: Conservative reroll")
-            currentDice.map { it == currentDice.minOrNull() }
+        // Significant gap - reroll dice with values less than 3 (strategic)
+        scoreGap > targetScore * 0.3 -> {
+            currentDice.map { value ->
+                // Focus on rerolling low-value dice
+                value < 3
+            }
         }
-
-        // Not behind enough to take risks
+        // Moderate gap - reroll the lowest value dice (selective)
+        scoreGap > targetScore * 0.15 -> {
+            currentDice.map { value ->
+                // Reroll the lowest values in the dice set
+                value == currentDice.minOrNull()
+            }
+        }
+        // Minimal gap or leading - no rerolling (conservative)
         else -> {
-            Log.d("HardMode", "LOW RISK MODE: Keep most dice")
             List(5) { false }
         }
     }
 
-    // Log reroll decisions
+    // Log reroll decisions for debugginggg
     rerollStrategy.forEachIndexed { index, shouldReroll ->
         Log.d("HardMode", "Die #${index+1}: ${currentDice[index]} - ${if (shouldReroll) "REROLL" else "KEEP"}")
     }
 
     // Perform reroll based on strategy
     val newDice = currentDice.mapIndexed { index, value ->
+        // If this die needs to be rerolled
         if (rerollStrategy[index]) {
             val newValue = (1..6).random()
             Log.d("HardMode", "Rerolled Die #${index+1}: $value -> $newValue")
@@ -774,24 +789,40 @@ fun computeHardModeTurn(
 }
 
 /**
- * Perform a second reroll in hard mode if situation is critical
+ * Second Reroll Strategy for Hard Mode
+ * Deterministic approach for the second reroll
  */
 fun computeHardModeSecondReroll(
     gameState: MutableState<GameState>,
     currentDice: List<Int>
 ): List<Int> {
-    val scoreGap = gameState.value.targetScore - gameState.value.computerScore
+    val currentScore = gameState.value.computerScore
+    val playerScore = gameState.value.playerScore
+    val targetScore = gameState.value.targetScore
 
-    // Decide on second reroll based on remaining score gap
+    // Calculate score gaps
+    val scoreGap = targetScore - currentScore
+    val playerScoreGap = targetScore - playerScore
+
+    // Determine second reroll strategy
     val secondRerollStrategy = when {
-        scoreGap > gameState.value.targetScore * 0.15 -> {
-            Log.d("HardMode", "SECOND REROLL: High Risk")
-            List(5) { it < 3 }
+        // High risk - reroll lowest value dice to improve chances (aggressive)
+        scoreGap > targetScore * 0.4 -> {
+            Log.d("HardMode", "SECOND REROLL: High Risk Catchup")
+            // For each die, check if it is the lowest value and Reroll the die with the minimum value
+            currentDice.map { value ->
+                value == currentDice.minOrNull()
+            }
         }
-        scoreGap > gameState.value.targetScore * 0.3 -> {
+        // Moderate risk - reroll dice with values less than 3 (strategic)
+        scoreGap > targetScore * 0.2 -> {
             Log.d("HardMode", "SECOND REROLL: Moderate Risk")
-            currentDice.map { it < 4 }
+            // For each die, check if its value is less than 3 // If value is less than 3, reroll it
+            currentDice.map { value ->
+                value < 3
+            }
         }
+        // Minimal gap - low risk -no rerollingggg
         else -> {
             Log.d("HardMode", "SECOND REROLL: Low Risk")
             List(5) { false }
@@ -805,13 +836,14 @@ fun computeHardModeSecondReroll(
             Log.d("HardMode", "Second Reroll Die #${index+1}: $value -> $newValue")
             newValue
         } else {
+            // Keep the current value if no reroll is needed
             value
         }
     }
 
     // Log final dice state
     Log.d("HardMode", "Final Second Reroll Dice State: $newDice")
-
+    // Return the new dice state
     return newDice
 }
 

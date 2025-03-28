@@ -1,4 +1,5 @@
 package com.example.dice_game.components
+
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
@@ -16,6 +17,7 @@ import com.example.dice_game.generateDice
 import com.example.dice_game.humanWins
 import com.example.dice_game.ui.theme.DarkYellow
 import com.example.dice_game.ui.theme.Green
+import com.example.dice_game.ui.theme.Red
 
 @Composable
 fun Result(
@@ -41,6 +43,8 @@ fun Result(
     val handler = remember { Handler(Looper.getMainLooper()) }
     val showTieFrogDialog = remember { mutableStateOf(false) }
     val hasUpdatedWin = remember { mutableStateOf(false) }
+    val tieBreakRound = remember { mutableStateOf(1) }
+    val isProcessingResult = remember { mutableStateOf(false) }
 
     BackHandler(enabled = showResultDialog.value) {
         val intent = Intent(currentContext, MainActivity::class.java)
@@ -48,30 +52,35 @@ fun Result(
         currentContext.startActivity(intent)
     }
 
-    if (scoringCompleted.value && !hasUpdatedWin.value) {
+    // Regular game result check
+    if (scoringCompleted.value && !hasUpdatedWin.value && !isTieBreaker.value && !isProcessingResult.value) {
+        isProcessingResult.value = true
+
         if (playerScore.value >= targetScore.value && playerScore.value > computerScore.value) {
             humanWins++
-            showResultDialog.value = true
             resultMessage.value = "You Win!"
             resultColor.value = Green
             frogImage.value = R.drawable.happy_frog
             hasUpdatedWin.value = true
+            showResultDialog.value = true
         } else if (computerScore.value >= targetScore.value && computerScore.value > playerScore.value) {
             computerWins++
-            showResultDialog.value = true
             resultMessage.value = "You Lose!"
             resultColor.value = Color.Red
             frogImage.value = R.drawable.sad_frog
             hasUpdatedWin.value = true
+            showResultDialog.value = true
         } else if (playerScore.value >= targetScore.value && computerScore.value >= targetScore.value) {
             showTieFrogDialog.value = true
             resultMessage.value = "     It's a Tie! \n Rolling again"
             resultColor.value = DarkYellow
             frogImage.value = R.drawable.confused
+            tieBreakRound.value = 1
 
             handler.postDelayed({
                 showTieFrogDialog.value = false
                 isTieBreaker.value = true
+                hasUpdatedWin.value = false
                 val playerTieBreakDice = generateDice()
                 val computerTieBreakDice = generateDice()
                 playerDice.value = playerTieBreakDice
@@ -80,41 +89,52 @@ fun Result(
                 playerRerolls.value = 0
                 computerRerolls.value = 0
                 inRerollMode.value = false
-                scoringCompleted.value = false
                 selectedDice.value = List(5) { false }
                 playerScore.value = playerTieBreakDice.sum()
                 computerScore.value = computerTieBreakDice.sum()
-            }, 5000)
+                scoringCompleted.value = true
+                isProcessingResult.value = false
+            }, 3000)
+        } else {
+            isProcessingResult.value = false
         }
     }
 
-    if (isTieBreaker.value) {
-        val playerTieBreakScore = playerScore.value
-        val computerTieBreakScore = computerScore.value
+    // Tie-breaker result check
+    if (isTieBreaker.value && scoringCompleted.value && !hasUpdatedWin.value && !isProcessingResult.value) {
+        isProcessingResult.value = true
 
-        if (playerTieBreakScore > computerTieBreakScore) {
+        if (playerScore.value > computerScore.value) {
+            humanWins++
+            hasUpdatedWin.value = true
+            isTieBreaker.value = false
+
             handler.postDelayed({
-                humanWins++
-                showResultDialog.value = true
                 resultMessage.value = "You Win!"
                 resultColor.value = Green
                 frogImage.value = R.drawable.happy_frog
-                isTieBreaker.value = false
-                hasUpdatedWin.value = true
-            }, 5000)
-        } else if (computerTieBreakScore > playerTieBreakScore) {
-            handler.postDelayed({
-                computerWins++
                 showResultDialog.value = true
+                isProcessingResult.value = false
+            }, 3000)
+
+        } else if (computerScore.value > playerScore.value) {
+            computerWins++
+            hasUpdatedWin.value = true
+            isTieBreaker.value = false
+
+            handler.postDelayed({
                 resultMessage.value = "You Lose!"
                 resultColor.value = Color.Red
                 frogImage.value = R.drawable.sad_frog
-                isTieBreaker.value = false
-                hasUpdatedWin.value = true
-            }, 5000)
+                showResultDialog.value = true
+                isProcessingResult.value = false
+            }, 3000)
+
         } else {
+            // Another tie - go to next tie-breaker round
+            tieBreakRound.value++
             showTieFrogDialog.value = true
-            resultMessage.value = "     Another Tie! \n Rolling again"
+            resultMessage.value = "     Another Tie! \n Rolling again (Round ${tieBreakRound.value})"
             resultColor.value = DarkYellow
             frogImage.value = R.drawable.confused
 
@@ -128,11 +148,12 @@ fun Result(
                 playerRerolls.value = 0
                 computerRerolls.value = 0
                 inRerollMode.value = false
-                scoringCompleted.value = false
                 selectedDice.value = List(5) { false }
                 playerScore.value = nextPlayerTieBreakDice.sum()
                 computerScore.value = nextComputerTieBreakDice.sum()
-            }, 5000)
+                scoringCompleted.value = true
+                isProcessingResult.value = false
+            }, 3000)
         }
     }
 

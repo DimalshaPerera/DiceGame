@@ -1,4 +1,3 @@
-
 package com.example.dice_game.components
 
 import androidx.compose.foundation.Image
@@ -25,24 +24,25 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dice_game.R
-
 import com.example.dice_game.ui.theme.*
-
+import android.util.Log
 
 @Composable
 fun GameRules(
+    currentTargetScore: String,
+    currentIsHardMode: Boolean,
     onWinningScoreSet: (Int) -> Unit = {},
     isTargetScoreApplied: Boolean = false,
     onTargetScoreApplied: (Boolean) -> Unit = {},
     onGameModeChanged: (Boolean) -> Unit = {}
-
 ) {
-
     // State for target score, validation, and applied status
-    val targetScore = rememberSaveable { mutableStateOf("101") }
+    val targetScore = rememberSaveable(currentTargetScore) { mutableStateOf(currentTargetScore) }
     val isValidScore = rememberSaveable { mutableStateOf(true) }
-    val isScoreApplied = rememberSaveable { mutableStateOf(isTargetScoreApplied) }
-    val isHardMode = rememberSaveable { mutableStateOf(false) }
+    val isScoreApplied = rememberSaveable(isTargetScoreApplied) { mutableStateOf(isTargetScoreApplied) }
+    val isHardMode = rememberSaveable(currentIsHardMode) { mutableStateOf(currentIsHardMode) }
+
+    Log.d("GameRules", "Initializing with target: ${targetScore.value}, mode: ${if (isHardMode.value) "HARD" else "EASY"}")
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -57,14 +57,14 @@ fun GameRules(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Log.d("GameRules", "Rendering mode switch button")
 
                 CustomButton(
                     text = if (!isHardMode.value) "EASY" else "HARD",
                     onClick = {
                         // Toggle hard mode directly
                         isHardMode.value = !isHardMode.value
-
-
+                        Log.d("GameRules", "Mode button clicked. New mode: ${if (isHardMode.value) "HARD" else "EASY"}")
                         onGameModeChanged(isHardMode.value)
                     },
                     width = 150,
@@ -75,10 +75,10 @@ fun GameRules(
             }
         }
     }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-
         // Speech bubble background
         Box(
             modifier = Modifier
@@ -95,7 +95,6 @@ fun GameRules(
                 contentScale = ContentScale.Fit
             )
 
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -103,7 +102,6 @@ fun GameRules(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start
             ) {
-
                 Text(
                     text = "Game Rules",
                     color = BrownDark,
@@ -122,7 +120,6 @@ fun GameRules(
                 )
             }
         }
-
 
         Image(
             painter = painterResource(id = R.drawable.witch),
@@ -143,7 +140,6 @@ fun GameRules(
                 .align(Alignment.CenterStart)
                 .offset(x = 200.dp, y = 30.dp)
         )
-
 
         Box(
             modifier = Modifier
@@ -170,14 +166,17 @@ fun GameRules(
                             // Filter to allow only numeric input
                             val filteredValue = newValue.filter { it.isDigit() }
                             targetScore.value = filteredValue
+                            Log.d("GameRules", "Target score input changed to: $filteredValue")
 
                             // Validate score is between 30 and 1000
                             val scoreValue = filteredValue.toIntOrNull() ?: 0
                             isValidScore.value = scoreValue in 30..1000
+                            Log.d("GameRules", "Score validation: ${isValidScore.value}")
 
                             // Reset applied state when score changes
                             isScoreApplied.value = false
                             onTargetScoreApplied(false)
+                            Log.d("GameRules", "Score changed - reset applied state")
                         },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
@@ -196,6 +195,7 @@ fun GameRules(
 
                 // Apply button (only shown for valid scores)
                 if (isValidScore.value && targetScore.value.isNotEmpty()) {
+                    Log.d("GameRules", "Showing apply button")
                     Text(
                         text = "Apply",
                         color = BrownPrimary,
@@ -209,6 +209,7 @@ fun GameRules(
                             .align(Alignment.End)
                             .clickable {
                                 val score = targetScore.value.toIntOrNull() ?: 101
+                                Log.d("GameRules", "Apply button clicked with score: $score")
                                 onWinningScoreSet(score)
                                 isScoreApplied.value = true
                                 onTargetScoreApplied(true)
@@ -219,6 +220,7 @@ fun GameRules(
 
                 // Error message for invalid score
                 if (!isValidScore.value) {
+                    Log.d("GameRules", "Showing invalid score error")
                     Text(
                         text = "Score must be between 30 and 1000",
                         color = Color.Red,
@@ -227,7 +229,6 @@ fun GameRules(
                 }
             }
         }
-
 
         Text(
             text = "Apply your target score & Click throw",

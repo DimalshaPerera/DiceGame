@@ -1,27 +1,22 @@
 package com.example.dice_game
 
-import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.platform.LocalContext
+
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.activity.addCallback
-import androidx.activity.compose.BackHandler
+
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
+
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -29,10 +24,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.dice_game.components.AnimatedTitle
@@ -41,12 +32,10 @@ import com.example.dice_game.components.GameContent
 import com.example.dice_game.components.Result
 import com.example.dice_game.components.GameRules
 import com.example.dice_game.components.GameScreenBackground
-import com.example.dice_game.ui.theme.BrownPrimary
+
 import com.example.dice_game.ui.theme.DiceGameTheme
 import com.example.dice_game.ui.theme.White
-import com.example.dice_game.ui.theme.Green
-import com.example.dice_game.ui.theme.Red
-import com.example.dice_game.ui.theme.DarkYellow
+
 
 class GameScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
